@@ -1,5 +1,0 @@
-baseURL = 'http://blog.jyd.me/'
-languageCode = 'zh-CN'
-title = '要点记录'
-
-theme = 'PaperMod'
