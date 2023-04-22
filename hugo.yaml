@@ -12,52 +12,25 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 enableEmoji: true
+defaultContentLanguage: zh
 pygmentsUseClasses: true
 # googleAnalytics: UA-123-45
 
 minify:
     disableXML: true
     # minifyOutput: true
+menu:
+    main:
+        - name: 存档
+          url: archives
+          weight: 5
+        - name: 搜索
+          url: search/
+          weight: 10
+        - name: 标签
+          url: tags/
+          weight: 10
 
-languages:
-    en:
-        title: "Ji Yaodian"
-        languageName: "English"
-        weight: 1
-        taxonomies:
-          category: categories
-          tag: tags
-          series: series
-        menu:
-            main:
-                - name: Archive
-                  url: archives
-                  weight: 5
-                - name: Search
-                  url: search/
-                  weight: 10
-                - name: Tags
-                  url: tags/
-                  weight: 10
-
-    zh:
-        languageName: "中文"
-        weight: 2
-        taxonomies:
-          category: categories
-          tag: tags
-          series: series
-        menu:
-            main:
-                - name: 存档
-                  url: archives
-                  weight: 5
-                - name: 搜索
-                  url: search/
-                  weight: 10
-                - name: 标签
-                  url: tags/
-                  weight: 10
 
 outputs:
     home:
@@ -70,10 +43,9 @@ params:
     description: "xxx"
     author: jyd
     # author: ["Me", "You"] # multiple authors
-
-    defaultTheme: auto
+    defaultTheme: light
     # disableThemeToggle: true
-    ShowShareButtons: true
+    #ShowShareButtons: true
     ShowReadingTime: true
     # disableSpecial1stPost: true
     displayFullLangName: true
@@ -101,26 +73,22 @@ params:
     homeInfoParams:
         Title: "Ji Yaodian"
         Content: >
-            Welcome to demo of hugo's theme PaperMod.
+            欢迎来到纪录小站
 
-            - **PaperMod** is a simple but fast and responsive theme with useful feature-set that enhances UX.
-
-            - Do give a 🌟 on Github !
-
-            - PaperMod is based on theme [Paper](https://github.com/nanxiaobei/hugo-paper).
-
+            - 定个flag
+    mainSections:
+        - posts
+        - transformers
     socialIcons:
         - name: github
-          url: "https://github.com/adityatelange/hugo-PaperMod"
-        - name: KoFi
-          url: "https://ko-fi.com/adityatelange"
+          url: "https://github.com/jiyaodian"
         - name: Rss
           url: "index.xml"
 
-    editPost:
-        URL: "https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content"
-        Text: "Suggest Changes" # edit text
-        appendFilePath: true # to append file path to Edit link
+            #    editPost:
+            #        URL: "https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content"
+            #        Text: "Suggest Changes" # edit text
+            #        appendFilePath: true # to append file path to Edit link
 
     # label:
     #     text: "Home"
@@ -165,26 +133,3 @@ markup:
         # lineNos: true
         # style: monokai
 
-privacy:
-    vimeo:
-        disabled: false
-        simple: true
-
-    twitter:
-        disabled: false
-        enableDNT: true
-        simple: true
-
-    instagram:
-        disabled: false
-        simple: true
-
-    youtube:
-        disabled: false
-        privacyEnhanced: true
-
-services:
-    instagram:
-        disableInlineCSS: true
-    twitter:
-        disableInlineCSS: true
