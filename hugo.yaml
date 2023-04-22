@@ -14,7 +14,7 @@ buildExpired: false
 enableEmoji: true
 defaultContentLanguage: zh
 pygmentsUseClasses: true
-# googleAnalytics: UA-123-45
+googleAnalytics: G-4EFJT4XVKQ
 
 minify:
     disableXML: true
