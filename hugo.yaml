@@ -1,4 +1,4 @@
-baseURL: 'http://blog.jyd.me/'
+baseURL: 'https://blog.jyd.me/'
 languageCode: 'zh-CN'
 title: 纪录
 
@@ -14,7 +14,7 @@ buildExpired: false
 enableEmoji: true
 defaultContentLanguage: zh
 pygmentsUseClasses: true
-googleAnalytics: G-4EFJT4XVKQ
+googleAnalyticss: G-4EFJT4XVKQ
 
 minify:
     disableXML: true
