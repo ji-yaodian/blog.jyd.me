@@ -1,7 +1,8 @@
 baseURL: 'https://blog.jyd.me/'
 languageCode: 'zh-CN'
-title: 纪录
-
+title: 纪路
+description: "记录技术上、生活上的各种想法"
+keywords: "深度学习、推荐算法、AIGC、LLM"
 theme: PaperMod
 
 paginate: 5
@@ -15,6 +16,8 @@ enableEmoji: true
 defaultContentLanguage: zh
 pygmentsUseClasses: true
 googleAnalyticss: G-4EFJT4XVKQ
+
+  #copyright: [知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 minify:
     disableXML: true
@@ -54,6 +57,7 @@ params:
     ShowCodeCopyButtons: true
     ShowRssButtonInSectionTermList: true
     ShowToc: true
+    tocOpen: true
     # comments: false
     images: ["papermod-cover.png"]
 
@@ -132,4 +136,3 @@ markup:
         # guessSyntax: true
         # lineNos: true
         # style: monokai
-
