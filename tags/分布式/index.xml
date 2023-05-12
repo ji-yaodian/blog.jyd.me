@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>分布式 on 纪路</title>
+    <link>https://blog.jyd.me/tags/%E5%88%86%E5%B8%83%E5%BC%8F/</link>
+    <description>Recent content in 分布式 on 纪路</description>
+    <image>
+      <title>纪路</title>
+      <url>https://blog.jyd.me/papermod-cover.png</url>
+      <link>https://blog.jyd.me/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 22 Apr 2023 17:45:08 +0800</lastBuildDate><atom:link href="https://blog.jyd.me/tags/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>多卡训练：如何选择合适的并行策略</title>
+      <link>https://blog.jyd.me/transformers/multi-gpu-training-1/</link>
+      <pubDate>Sat, 22 Apr 2023 17:45:08 +0800</pubDate>
+      
+      <guid>https://blog.jyd.me/transformers/multi-gpu-training-1/</guid>
+      <description>前言 当我们训练深度学习模型时，有时会遇到问题：单个GPU速度太慢,或者模型权重放不进单个GPU里。这时候，我们就需要考虑使用多个GPU来进行训练。
+现在，有很多方法可以实现并行，比如数据、张量和流水线并行。 不过，并没有一个通用的解决方案能适应所有情况。
+注意：单GPU的许多策略（比如混合精度训练或梯度累积）都是通用的，也适用于大部分模型训练。
+主要概念 下面是一些主要概念的简要概述：
+数据并行（DataParallel）：就是把模型参数放到所有卡上，每张卡都有完整的模型参数，每张卡都会处理一部分数据。处理过程是同时进行的，然后在每次训练步骤结束时同步所有结果。 张量并行（TensorParallel）：这个方法是把每个张量切成好几块，所以不是把整个张量放在一个GPU上，而是让张量的每个部分都放在不同的GPU上。在处理过程中，每个部分都在不同的GPU上同时进行处理，然后在步骤结束时同步结果。这就是所谓的水平并行，因为切分是在水平层面进行的。 流水线并行（PipelineParallel）：这个方法是把模型垂直（按层级）切分到不同的GPU上，这样单个GPU上只放置模型的一部分或几个层。每个GPU同时处理流水线的不同阶段，一次处理一小部分批次数据。 零冗余优化器（ZeRO）：这个方法也对张量进行分片，但与TP不同的是，在进行正向或反向计算时，整个张量会在适当时候重建。因此，模型不需要进行修改。它还支持各种offloading技术以弥补不足的GPU内存。 分片数据并行（Sharded DDP）： 是ZeRO的另一个名称。 如何选择合适的并行策略 ​	在训练大模型的时候，为了能够训练，或者提高训练速度，我们可以采用各种并行策略。
+​	以下将针对单GPU、单节点多GPU以及多节点多GPU等不同场景，介绍如何选择合适的并行策略。
+一、单GPU 模型可以完全加载到单个GPU中
+在这种情况下，可以正常使用单GPU进行训练。 模型无法完全加载到单个GPU中
+ZeRO + Offload CPU方案，并可选使用NVMe作为辅助存储。
+如果模型中最大的层无法放入单个GPU中，可以考虑使用Memory Centric Tiling, MCT技术。MCT可以通过自动分割并顺序执行大型层来运行任意大小的层。这种方式目前很少用，需要手动覆盖torch.nn.Linear来实现。
+二、单节点多GPU场景 模型可以完全加载到单个GPU中
+可以使用DDP（Distributed Data Parallel，分布式数据并行）策略 ZeRO（Zero Redundancy Optimizer，零冗余优化器）策略也可以作为一种选择。 模型无法完全加载到单个GPU中
+PP（Pipeline Parallelism） ZeRO TP（Tensor Parallelism） 当节点内部，卡与卡之间有NVLINK或NVSwitch连接时，这三种策略的性能基本相当；
+若没有，PP通常比TP或ZeRO更快。不同程度的TP对性能的影响可能不同，所以最好通过实验来确定在特定设备上的最佳策略。
+最大层无法放入单个GPU中
+ZeRO 如果无法使用ZeRO策略，则只能选择TP。 三、多节点多GPU场景 具有快速节点间连接时
+选择使用ZeRO策略，因为它几乎不需要对模型进行修改。 还可以考虑使用PP+TP+DP（Data Parallel，数据并行）组合策略，该策略减少了通信量，但需要对模型进行大量修改。 节点间连接速度较慢，且GPU内存仍然不足时
+可以尝试使用DP+PP+TP+ZeRO-1组合策略 参考文献 Efficient Training on Multiple GPUs (huggingface.co)</description>
+    </item>
+    
+  </channel>
+</rss>
