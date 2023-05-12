@@ -1,6 +1,6 @@
 baseURL: 'https://blog.jyd.me/'
 languageCode: 'zh-CN'
-title: 纪路
+title: 纪录点滴
 description: "记录技术上、生活上的各种想法"
 keywords: "深度学习、推荐算法、AIGC、LLM"
 theme: PaperMod
