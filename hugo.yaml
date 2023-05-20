@@ -17,7 +17,7 @@ defaultContentLanguage: zh
 pygmentsUseClasses: true
 googleAnalyticss: G-4EFJT4XVKQ
 
-  #copyright: [知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+copyright: "[知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)"
 
 minify:
     disableXML: true
@@ -85,7 +85,7 @@ params:
         - transformers
     socialIcons:
         - name: github
-          url: "https://github.com/jiyaodian"
+          url: "https://github.com/ji-yaodian"
         - name: Rss
           url: "index.xml"
 
@@ -131,8 +131,8 @@ markup:
             unsafe: true
     highlight:
         noClasses: false
-        # anchorLineNos: true
-        # codeFences: true
-        # guessSyntax: true
-        # lineNos: true
-        # style: monokai
+        anchorLineNos: true
+        codeFences: true
+        guessSyntax: true
+        lineNos: true
+        style: monokai
