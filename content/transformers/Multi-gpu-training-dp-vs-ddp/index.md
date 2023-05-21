@@ -3,7 +3,6 @@ title: 多卡训练：DP vs DDP
 date: 2023-05-20T17:45:08+08:00
 tags: ['分布式', '深度学习']
 categories: ['深度学习']
-draft: true
 ---
 
 今天聊聊数据并行（DP）和分布式数据并行（DDP）这两个常用的方法。
