@@ -1,6 +1,6 @@
 baseURL: 'https://blog.jyd.me/'
 languageCode: 'zh-CN'
-title: 纪录点滴
+title: 纪录
 description: "记录技术上、生活上的各种想法"
 keywords: "深度学习、推荐算法、AIGC、LLM"
 theme: PaperMod
@@ -47,7 +47,7 @@ outputs:
 
 params:
     env: production # to enable google analytics, opengraph, twitter-cards and schema.
-    description: "xxx"
+    description: ""
     author: jyd
     # author: ["Me", "You"] # multiple authors
     defaultTheme: light
@@ -61,17 +61,17 @@ params:
     ShowCodeCopyButtons: true
     ShowRssButtonInSectionTermList: true
     ShowToc: true
-    tocOpen: true
-    # comments: false
+    tocOpen: false
+    comments: true
     images: ["papermod-cover.png"]
 
     profileMode:
         enabled: false
         title: PaperMod
-        imageUrl: "#"
-        imageTitle: my image
-        # imageWidth: 120
-        # imageHeight: 120
+        imageUrl: "face.jpg"
+        imageTitle: face
+        imageWidth: 120
+        imageHeight: 120
         buttons:
             - name: Archives
               url: archives
@@ -83,10 +83,10 @@ params:
         Content: >
             欢迎来到纪录小站
 
-            - 定个flag
     mainSections:
         - posts
         - transformers
+        - paper
     socialIcons:
         - name: github
           url: "https://github.com/ji-yaodian"
@@ -109,11 +109,11 @@ params:
 
     assets:
         disableHLJS: true
-    #     favicon: "<link / abs url>"
-    #     favicon16x16: "<link / abs url>"
-    #     favicon32x32: "<link / abs url>"
-    #     apple_touch_icon: "<link / abs url>"
-    #     safari_pinned_tab: "<link / abs url>"
+        # favicon: "favicon.ico"
+        # favicon16x16: "favicon-16x16.png"
+        # favicon32x32: "favicon-32x32.png"
+        #  apple_touch_icon: "<link /favicon/favicon.ico>"
+        #  safari_pinned_tab: "<link /favicon/favicon.ico>"
 
     # cover:
     #     hidden: true # hide everywhere but not in structured data

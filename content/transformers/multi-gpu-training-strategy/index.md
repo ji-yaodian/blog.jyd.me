@@ -77,7 +77,6 @@ categories: ['深度学习']
      
      
      
-     
 ## 参考文献
 
 [Efficient Training on Multiple GPUs (huggingface.co)](https://huggingface.co/docs/transformers/perf_train_gpu_many)
