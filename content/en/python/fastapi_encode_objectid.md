@@ -1,19 +1,19 @@
 ---
-title: TypeError("'ObjectId' object is not iterable") 解决方法
+title: TypeError("'ObjectId' object is not iterable") 
 date: 2024-06-05T21:43:54+08:00
 tags: ["python", "fastpi", "mongodb"]
 categories: ["python", "mongodb"]
 draft: false
 ---
 # 'ObjectId' object is not iterable
-使用fastapi，当返回结果里面包含mongodb的id，也就是ObjectId类型的时候，就会报错： TypeError("'ObjectId' object is not iterable")。
+If you use fastapi, when the return result contains the id of mongodb, which is the ObjectId type, the error message will be reported: TypeError("'ObjectId' object is not iterable").
 
-直接google搜索下，可以得到几种方法：
+A direct Google search can be used to get several methods:
 
-1. 先使用str()方法将ObjectId转换成字符串
-2. 使用bson内置的json_util.dumps()方法将ObjectId转换成字符串
-3. 删除ObjectId字段
-4. 定义一个JSONEncoder类，将ObjectId转换成字符串
+1. Use the str() method to convert the ObjectId to a string
+2. Use the built-in json_util.dumps() method of bson to convert the ObjectId to a string
+3. Delete the ObjectId field
+4. Define a JSONEncoder class to convert the ObjectId to a string
 
 ```python
 import json
@@ -29,7 +29,7 @@ JSONEncoder().encode(analytics)
 ```
 
 5. json.dumps(my_obj, default=str)
-6. 如果是老版本的fastapi
+6. If it is an older version of fastapi
 
 ```python
 import pydantic
@@ -37,12 +37,12 @@ from bson import ObjectId
 pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 ```
 
-看起来，第6种方法是比较优雅的，但是，对于没有使用pydantic的返回结果，就不适用了。而且，新版本的pydantic也不是这样的使用方法了。
+It seems that the 6th method is more elegant, but it does not work for the return results that do not use pydantic. Also, the new version of pydantic doesn't work that way.
 
-其实，不管什么类型，只要是json不支持的，都会报错，比如datetime类型也会报错。
-但是为什么fastapi返回datetime类型的时候不会报错呢？因为fastapi内部已经做了处理，将datetime类型转换成了字符串类型。
+In fact, no matter what type, as long as it is not supported by JSON, an error will be reported, such as the datetime type.
+But why doesn't fastapi report an error when it returns the datetime type? This is because FastAPI has done the internal processing to convert the datetime type to the string type.
 
-通过报错信息。
+Through the error message.
 
 ```shell
 │ /xxxx/site-packages/fastapi/encoders.py:332 in          │
@@ -56,9 +56,9 @@ pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 │   334 │   │   data,
 ```
 
-我们可以看到是在fastapi的encoders.py里面报错的。
+We can see that the error is reported in the fastapi encoders.py.
 
-打开encoders.py文件, 可以看到
+Open encoders.py file, you can see
 
 ```python
     for encoder, classes_tuple in encoders_by_class_tuples.items():
@@ -66,8 +66,8 @@ pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
             return encoder(obj)
 ```
 
-有点眼熟是不是，跟JSONEncoder类似，只不过是fastapi内部的实现。
-稍微看一眼代码，可以看到：
+It's a bit familiar, it's similar to JSONEncoder, but it's an internal implementation of fastapi.
+A little glance at the code shows that:
 
 ```python
 
@@ -101,16 +101,19 @@ ENCODERS_BY_TYPE: Dict[Type[Any], Callable[[Any], Any]] = {
 }
 ```
 
-这个就是fastapi内部的处理方式，将不支持的类型通过对应的处理方式转换成支持的类型。
+This is the internal processing method of fastapi, which converts unsupported types into supported types through the corresponding processing methods.
 
-那么，我们就得到一种比较简单的处理方法了。在程序启动之前，将ObjectId类型添加到ENCODERS_BY_TYPE里面，调用str方法转换即可。
+So, we get a relatively simple way to deal with it. Before the program starts, add the ObjectId type to the ENCODERS_BY_TYPE and call the str method to convert.
+
 
 ```python
 from bson import ObjectId
 from fastapi.encoders import ENCODERS_BY_TYPE
 
-#fastapi默认不支持ObjectId转json，这里做个映射，调用str方法转换
+#fastapi does not support converting ObjectId to json by default, so make a mapping here and call the str method to convert
 ENCODERS_BY_TYPE[ObjectId] = str
 ```
 
-这样，就可以解决fastapi返回ObjectId类型的问题了。如果有其他类型要处理，也可以按照这个方法处理。
+In this way, the problem of fastapi returning an ObjectId type can be solved. If there are other types to be processed, you can also do the same.
+
+fastapi==0.111.0

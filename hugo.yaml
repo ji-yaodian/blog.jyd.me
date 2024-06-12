@@ -14,29 +14,66 @@ buildFuture: false
 buildExpired: false
 enableEmoji: true
 defaultContentLanguage: zh
+defaultContentLanguageInSubdir: false
+languages:
+  zh:
+    languageCode: zh-CN
+    languageDirection: ltr
+    languageName: 中文
+    title: 记要点
+    contentDir: content/zh
+    weight: 1
+    menu:
+        main:
+            - name: 存档
+              url: archives
+              weight: 5
+
+            - name: 搜索
+              url: search/
+              weight: 10
+
+            - name: 标签
+              url: tags/
+              weight: 10
+
+            - name: 关于
+              url: about/
+              weight: 11
+
+
+  en:
+    contentDir: content/en
+    languageCode: en-US
+    languageDirection: ltr
+    languageName: English
+    title: JYD
+    weight: 2
+    menu:
+        main:
+            - name: archives
+              url: archives
+              weight: 5
+
+            - name: search
+              url: search
+              weight: 10
+
+            - name: tags
+              url: tags
+              weight: 10
+    homeInfoParams:
+        Title: "Ji Yaodian"
+
 pygmentsUseClasses: true
 googleAnalyticss: G-4EFJT4XVKQ
 
 copyright: "[知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/)"
 
+#sectionPagesMenu: main
 minify:
     disableXML: true
     # minifyOutput: true
-menu:
-    main:
-        - name: 存档
-          url: archives
-          weight: 5
-        - name: 搜索
-          url: search/
-          weight: 10
-        - name: 标签
-          url: tags/
-          weight: 10
-        - name: 关于
-          url: about/
-          weight: 11
-
 
 
 outputs:
