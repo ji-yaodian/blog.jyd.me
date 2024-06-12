@@ -81,12 +81,15 @@ params:
     homeInfoParams:
         Title: "Ji Yaodian"
         Content: >
-            欢迎来到记要点的小站
+            欢迎来到记要点小站
 
     mainSections:
         - posts
         - transformers
         - paper
+        - python
+        - gan
+        - platform
     socialIcons:
         - name: github
           url: "https://github.com/ji-yaodian"
