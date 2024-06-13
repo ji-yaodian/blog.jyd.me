@@ -5,7 +5,7 @@ description: "记录技术上、生活上的各种想法、笔记、要点"
 keywords: "深度学习、推荐算法、AIGC、LLM"
 theme: PaperMod
 
-paginate: 5
+paginate: 20
 
 enableInlineShortcodes: true
 enableRobotsTXT: true
@@ -40,7 +40,6 @@ languages:
             - name: 关于
               url: about/
               weight: 11
-
 
   en:
     contentDir: content/en
