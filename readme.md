@@ -10,3 +10,7 @@ git clone -b main git@github.com:jiyaodian/myblog.git --recurse-submodules
 # 进入目录,启动草稿模式
 hugo server --disableFastRender -D
 ```
+
+更新hugo版本
+vercel.json
+/Users/jyd/github/blog.jyd.me/.github/workflows/hugo.yaml
