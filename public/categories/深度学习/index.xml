@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>深度学习 on 记要点</title>
+    <link>http://localhost:1313/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/</link>
+    <description>Recent content in 深度学习 on 记要点</description>
+    <image>
+      <title>记要点</title>
+      <url>http://localhost:1313/papermod-cover.png</url>
+      <link>http://localhost:1313/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-CN</language>
+    <copyright>知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</copyright>
+    <lastBuildDate>Sat, 20 May 2023 17:45:08 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>多卡训练：DP vs DDP</title>
+      <link>http://localhost:1313/transformers/multi-gpu-training-dp-vs-ddp/</link>
+      <pubDate>Sat, 20 May 2023 17:45:08 +0800</pubDate>
+      <guid>http://localhost:1313/transformers/multi-gpu-training-dp-vs-ddp/</guid>
+      <description>&lt;p&gt;今天聊聊数据并行（DP）和分布式数据并行（DDP）这两个常用的方法。&lt;/p&gt;
+&lt;p&gt;如果你有2个GPU，那你就可以简单的通过DP和DDP实现更快的训练速度。&lt;/p&gt;
+&lt;p&gt;Pytorch已经内置这两种方法，官方建议使用DDP。&lt;/p&gt;
+&lt;h3 id=&#34;数据并行dp&#34;&gt;数据并行（DP）&lt;/h3&gt;
+&lt;p&gt;数据并行是一种简单且常见的方法，它让我们可以在多个GPU上同时进行模型训练。&lt;/p&gt;
+&lt;p&gt;这个方法的核心思想就是：把一个大批量的数据分成几个小批量，然后让每个GPU处理一个小批量数据。处理完成后，我们把各个GPU计算出来的梯度汇总，然后更新模型权重。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;优点&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;实现简单：数据并行很容易理解和实现。&lt;/li&gt;
+&lt;li&gt;加速训练：因为数据是在多个GPU上同时处理的，所以训练速度会比单个GPU快很多。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;缺点&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;扩展性有限：当GPU数量增加时，通信和同步开销也会增加，这会限制训练速度的提升。&lt;/li&gt;
+&lt;li&gt;只适用于较小模型：如果模型太大，无法放入单个GPU的内存中，那么数据并行就不适用了。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;分布式数据并行ddp&#34;&gt;分布式数据并行（DDP）&lt;/h3&gt;
+&lt;p&gt;分布式数据并行是对数据并行的一种改进。在这个方法中，我们不仅把数据切分成小批量，而且还把模型参数在各个GPU上分片存储。这样一来，每个GPU都处理一部分数据，同时也只更新模型的一部分参数。&lt;/p&gt;
+&lt;p&gt;这种方法的关键在于，我们需要在所有GPU之间同步梯度和模型参数。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;优点&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;更好的扩展性：DDP的通信和同步开销相对较小，因此在大量GPU上训练时，它能提供更好的扩展性。&lt;/li&gt;
+&lt;li&gt;支持更大模型：由于模型参数在各个GPU上分片存储，DDP可以支持无法放入单个GPU内存的大型模型。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;缺点&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;实现更复杂：与数据并行相比，DDP需要更多的设置和细节处理。&lt;/li&gt;
+&lt;li&gt;依赖高速网络：DDP需要在各个GPU之间同步梯度和模型参数，这要求有高速的网络连接。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;dp与ddp的区别&#34;&gt;DP与DDP的区别&lt;/h3&gt;
+&lt;p&gt;通常，DDP比DP更快，但并非总是如此，比如显卡之间不支持 nv-link 的时候。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DP基于Python线程，而DDP基于多进程，因此DDP没有诸如全局解释器锁（GIL）之类的Python线程限制。&lt;/li&gt;
+&lt;li&gt;在GPU卡之间的连接速度较慢时，DDP的实际运行速度可能会更慢。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;以下是两种模式之间的主要差异：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;DDP&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在开始时，主进程将模型从GPU 0复制到其它GPU&lt;/li&gt;
+&lt;li&gt;然后，对于每个批次：
+&lt;ul&gt;
+&lt;li&gt;每个GPU直接计算自己的小批量数据&lt;/li&gt;
+&lt;li&gt;在反向传播过程中，一旦本地梯度计算好了，它们就会在所有进程之间取平均值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;DP&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;对于每个批次：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;GPU 0读取数据，然后将一个小批量发送给每个GPU&lt;/li&gt;
+&lt;li&gt;从GPU 0将最新的模型复制到每个GPU&lt;/li&gt;
+&lt;li&gt;执行推理并将结果从每个GPU发送到GPU 0，计算loss&lt;/li&gt;
+&lt;li&gt;将loss从GPU 0分散到所有GPU，进行反向传播&lt;/li&gt;
+&lt;li&gt;将梯度从每个GPU发送到GPU 0并取平均值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此，DDP每个批次只需要进行梯度发送，而DP需要进行5次不同的数据交换。&lt;/p&gt;
+&lt;p&gt;DP通过Python线程在进程内复制数据，而DDP通过torch.distributed复制数据。&lt;/p&gt;
+&lt;p&gt;在DP下，GPU 0的工作量远大于其他GPU，导致GPU的利用率降低。&lt;/p&gt;
+&lt;p&gt;DDP可以在多台机器上使用，但DP则不行。虽然DP和DDP之间还有其他差异，但它们与本讨论无关。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;结论&#34;&gt;结论&lt;/h3&gt;
+&lt;p&gt;数据并行（DP）和分布式数据并行（DDP）是在深度学习中实现多GPU训练的两种有效方法。通常情况下，DDP比DP更快，但具体差异取决于GPU之间需要同步的数据量。当需要同步的数据越多时，慢速连接可能导致整体运行速度变慢。&lt;/p&gt;
+&lt;p&gt;在选择使用哪种方法时，要考虑你的硬件条件和实际需求。希望这篇文章能帮助你更好地了解DP和DDP的概念、优缺点以及区别，从而为你的深度学习项目选择合适的多GPU训练策略。&lt;/p&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://huggingface.co/docs/transformers/perf_train_gpu_many#dp-vs-ddp&#34;&gt;Efficient Training on Multiple GPUs (huggingface.co)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>多卡训练：如何选择合适的并行策略</title>
+      <link>http://localhost:1313/transformers/multi-gpu-training-strategy/</link>
+      <pubDate>Sat, 22 Apr 2023 17:45:08 +0800</pubDate>
+      <guid>http://localhost:1313/transformers/multi-gpu-training-strategy/</guid>
+      <description>&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
+&lt;p&gt;当我们训练深度学习模型时，有时会遇到问题：单个GPU速度太慢,或者模型权重放不进单个GPU里。这时候，我们就需要考虑使用多个GPU来进行训练。&lt;/p&gt;
+&lt;p&gt;现在，有很多方法可以实现并行，比如数据、张量和流水线并行。 不过，并没有一个通用的解决方案能适应所有情况。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;：单GPU的许多策略（比如混合精度训练或梯度累积）都是通用的，也适用于大部分模型训练。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;主要概念&#34;&gt;主要概念&lt;/h2&gt;
+&lt;p&gt;下面是一些主要概念的简要概述：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;数据并行（DataParallel）&lt;/strong&gt;：就是把模型参数放到所有卡上，每张卡都有完整的模型参数，每张卡都会处理一部分数据。处理过程是同时进行的，然后在每次训练步骤结束时同步所有结果。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;张量并行（TensorParallel）&lt;/strong&gt;：这个方法是把每个张量切成好几块，所以不是把整个张量放在一个GPU上，而是让张量的每个部分都放在不同的GPU上。在处理过程中，每个部分都在不同的GPU上同时进行处理，然后在步骤结束时同步结果。这就是所谓的水平并行，因为切分是在水平层面进行的。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;流水线并行（PipelineParallel）&lt;/strong&gt;：这个方法是把模型垂直（按层级）切分到不同的GPU上，这样单个GPU上只放置模型的一部分或几个层。每个GPU同时处理流水线的不同阶段，一次处理一小部分批次数据。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;零冗余优化器（ZeRO）&lt;/strong&gt;：这个方法也对张量进行分片，但与TP不同的是，在进行正向或反向计算时，整个张量会在适当时候重建。因此，模型不需要进行修改。它还支持各种offloading技术以弥补不足的GPU内存。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;分片数据并行（Sharded DDP）&lt;/strong&gt;： 是ZeRO的另一个名称。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;如何选择合适的并行策略&#34;&gt;如何选择合适的并行策略&lt;/h2&gt;
+&lt;p&gt;​	在训练大模型的时候，为了能够训练，或者提高训练速度，我们可以采用各种并行策略。&lt;/p&gt;
+&lt;p&gt;​	以下将针对单GPU、单节点多GPU以及多节点多GPU等不同场景，介绍如何选择合适的并行策略。&lt;/p&gt;
+&lt;h3 id=&#34;一单gpu&#34;&gt;一、单GPU&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;模型可以完全加载到单个GPU中&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在这种情况下，可以正常使用单GPU进行训练。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;模型无法完全加载到单个GPU中&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;ZeRO + Offload CPU方案，并可选使用NVMe作为辅助存储。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;如果模型中最大的层无法放入单个GPU中，可以考虑使用Memory Centric Tiling, MCT技术。MCT可以通过自动分割并顺序执行大型层来运行任意大小的层。这种方式目前很少用，需要手动覆盖torch.nn.Linear来实现。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;二单节点多gpu场景&#34;&gt;二、单节点多GPU场景&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;模型可以完全加载到单个GPU中&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;可以使用DDP（Distributed Data Parallel，分布式数据并行）策略&lt;/li&gt;
+&lt;li&gt;ZeRO（Zero Redundancy Optimizer，零冗余优化器）策略也可以作为一种选择。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;模型无法完全加载到单个GPU中&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;PP（Pipeline Parallelism）&lt;/li&gt;
+&lt;li&gt;ZeRO&lt;/li&gt;
+&lt;li&gt;TP（Tensor Parallelism）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;当节点内部，卡与卡之间有NVLINK或NVSwitch连接时，这三种策略的性能基本相当；&lt;/p&gt;
+&lt;p&gt;若没有，PP通常比TP或ZeRO更快。不同程度的TP对性能的影响可能不同，所以最好通过实验来确定在特定设备上的最佳策略。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;最大层无法放入单个GPU中&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ZeRO&lt;/li&gt;
+&lt;li&gt;如果无法使用ZeRO策略，则只能选择TP。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;三多节点多gpu场景&#34;&gt;三、多节点多GPU场景&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;具有快速节点间连接时&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;选择使用ZeRO策略，因为它几乎不需要对模型进行修改。&lt;/li&gt;
+&lt;li&gt;还可以考虑使用PP+TP+DP（Data Parallel，数据并行）组合策略，该策略减少了通信量，但需要对模型进行大量修改。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;节点间连接速度较慢，且GPU内存仍然不足时&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;可以尝试使用DP+PP+TP+ZeRO-1组合策略&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://huggingface.co/docs/transformers/perf_train_gpu_many&#34;&gt;Efficient Training on Multiple GPUs (huggingface.co)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

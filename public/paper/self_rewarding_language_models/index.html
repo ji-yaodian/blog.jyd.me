@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh" dir="ltr" data-theme="light">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>看论文：Self-Rewarding Language Models | 记要点</title>
+<meta name="keywords" content="大模型, DPO, 强化学习, 论文">
+<meta name="description" content="概述
+语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。
+所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。
+论文里面迭代模型的过程是这样的:
+
+Model0: 没有微调的预训练模型
+Model1: 基于人类反馈数据的微调模型,使用SFT的方法微调
+Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model2进行微调
+Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调
+
+这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。
+模型迭代细节
+
+
+Model0:原始预训练模型
+
+
+Model1:基于人类反馈数据的微调模型,使用SFT的方法微调
+
+
+Model2:基于Model1自评分微调
+
+
+生成新的指令,具体的方法参考Aligning Language Models with Self-Generated Instructions和Tuning Language Models with (Almost) No Human Labor
+
+
+基于生成的指令,让Model1给每个输入生成N个回复
+
+
+使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+
+
+Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: 
+- Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. 
+- Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. 
+- Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. 
+- Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. 
+- Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. 
+
+User: &lt;INSTRUCTION_HERE&gt; 
+
+&lt;response&gt;&lt;RESPONSE_HERE&gt;&lt;/response&gt; 
+
+After examining the user’s instruction and the response: 
+- Briefly justify your total score, up to 100 words.
+- Conclude with the score using the format: “Score: &lt;total points&gt;” 
+
+Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess
+
+
+翻译成中文：">
+<meta name="author" content="jyd">
+<link rel="canonical" href="http://localhost:1313/paper/self_rewarding_language_models/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.aa4d733e30754dbdf00c219e327a3afb0e5c2c40ae18a7c1ee4522eb73234f01.css" integrity="sha256-qk1zPjB1Tb3wDCGeMno6&#43;w5cLECuGKfB7kUi63MjTwE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="http://localhost:1313/paper/self_rewarding_language_models/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    }
+
+</script><meta property="og:url" content="http://localhost:1313/paper/self_rewarding_language_models/">
+  <meta property="og:site_name" content="记要点">
+  <meta property="og:title" content="看论文：Self-Rewarding Language Models">
+  <meta property="og:description" content="概述 语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。
+所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。
+论文里面迭代模型的过程是这样的:
+Model0: 没有微调的预训练模型 Model1: 基于人类反馈数据的微调模型,使用SFT的方法微调 Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model2进行微调 Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调 这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。
+模型迭代细节 Model0:原始预训练模型
+Model1:基于人类反馈数据的微调模型,使用SFT的方法微调
+Model2:基于Model1自评分微调
+生成新的指令,具体的方法参考Aligning Language Models with Self-Generated Instructions和Tuning Language Models with (Almost) No Human Labor
+基于生成的指令,让Model1给每个输入生成N个回复
+使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: - Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. - Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. - Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. - Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. - Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. User: &lt;INSTRUCTION_HERE&gt; &lt;response&gt;&lt;RESPONSE_HERE&gt;&lt;/response&gt; After examining the user’s instruction and the response: - Briefly justify your total score, up to 100 words. - Conclude with the score using the format: “Score: &lt;total points&gt;” Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess 翻译成中文：">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="paper">
+    <meta property="article:published_time" content="2024-01-30T11:45:08+08:00">
+    <meta property="article:modified_time" content="2024-01-30T11:45:08+08:00">
+    <meta property="article:tag" content="大模型">
+    <meta property="article:tag" content="DPO">
+    <meta property="article:tag" content="强化学习">
+    <meta property="article:tag" content="论文">
+      <meta property="og:image" content="http://localhost:1313/papermod-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://localhost:1313/papermod-cover.png">
+<meta name="twitter:title" content="看论文：Self-Rewarding Language Models">
+<meta name="twitter:description" content="概述
+语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。
+所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。
+论文里面迭代模型的过程是这样的:
+
+Model0: 没有微调的预训练模型
+Model1: 基于人类反馈数据的微调模型,使用SFT的方法微调
+Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model2进行微调
+Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调
+
+这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。
+模型迭代细节
+
+
+Model0:原始预训练模型
+
+
+Model1:基于人类反馈数据的微调模型,使用SFT的方法微调
+
+
+Model2:基于Model1自评分微调
+
+
+生成新的指令,具体的方法参考Aligning Language Models with Self-Generated Instructions和Tuning Language Models with (Almost) No Human Labor
+
+
+基于生成的指令,让Model1给每个输入生成N个回复
+
+
+使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+
+
+Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: 
+- Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. 
+- Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. 
+- Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. 
+- Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. 
+- Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. 
+
+User: &lt;INSTRUCTION_HERE&gt; 
+
+&lt;response&gt;&lt;RESPONSE_HERE&gt;&lt;/response&gt; 
+
+After examining the user’s instruction and the response: 
+- Briefly justify your total score, up to 100 words.
+- Conclude with the score using the format: “Score: &lt;total points&gt;” 
+
+Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess
+
+
+翻译成中文：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Papers",
+      "item": "http://localhost:1313/paper/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "看论文：Self-Rewarding Language Models",
+      "item": "http://localhost:1313/paper/self_rewarding_language_models/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "看论文：Self-Rewarding Language Models",
+  "name": "看论文：Self-Rewarding Language Models",
+  "description": "概述 语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。\n所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。\n论文里面迭代模型的过程是这样的:\nModel0: 没有微调的预训练模型 Model1: 基于人类反馈数据的微调模型,使用SFT的方法微调 Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model2进行微调 Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调 这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。\n模型迭代细节 Model0:原始预训练模型\nModel1:基于人类反馈数据的微调模型,使用SFT的方法微调\nModel2:基于Model1自评分微调\n生成新的指令,具体的方法参考Aligning Language Models with Self-Generated Instructions和Tuning Language Models with (Almost) No Human Labor\n基于生成的指令,让Model1给每个输入生成N个回复\n使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: - Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. - Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. - Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. - Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. - Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. User: \u0026lt;INSTRUCTION_HERE\u0026gt; \u0026lt;response\u0026gt;\u0026lt;RESPONSE_HERE\u0026gt;\u0026lt;/response\u0026gt; After examining the user’s instruction and the response: - Briefly justify your total score, up to 100 words. - Conclude with the score using the format: “Score: \u0026lt;total points\u0026gt;” Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess 翻译成中文：\n",
+  "keywords": [
+    "大模型", "DPO", "强化学习", "论文"
+  ],
+  "articleBody": "概述 语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。\n所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。\n论文里面迭代模型的过程是这样的:\nModel0: 没有微调的预训练模型 Model1: 基于人类反馈数据的微调模型,使用SFT的方法微调 Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model2进行微调 Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调 这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。\n模型迭代细节 Model0:原始预训练模型\nModel1:基于人类反馈数据的微调模型,使用SFT的方法微调\nModel2:基于Model1自评分微调\n生成新的指令,具体的方法参考Aligning Language Models with Self-Generated Instructions和Tuning Language Models with (Almost) No Human Labor\n基于生成的指令,让Model1给每个输入生成N个回复\n使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: - Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. - Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. - Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. - Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. - Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. User: After examining the user’s instruction and the response: - Briefly justify your total score, up to 100 words. - Conclude with the score using the format: “Score: ” Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess 翻译成中文：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 将用户的指令和相应的回复使用下面描述的5分评分系统进行对比。根据每个标准的满意度，积累得分： 如果回应与用户的查询相关并提供一些与之相关的信息，即使不完整或包含一些无关内容，加1分。 如果回应涵盖了用户问题的大部分内容，但没有完全解决问题或提供直接答案，再加1分。 如果回应以有用的方式回答了用户问题的基本要点，无论是否看起来像是由AI助手编写，或者是否包含通常在博客或搜索结果中找到的元素，再加1分。 如果回应明确以AI助手的角度编写，直接而全面地回答了用户问题，组织良好并且有帮助，即使在清晰度、简洁度或焦点方面仍有轻微改进的空间，再加1分。 如果回应完美地根据用户的问题量身定制，没有多余的信息，反映出专业知识，展示了高质量、引人入胜且见地深刻的回答，再加1分。 用户：\u003c指令在这里\u003e \u003c回复\u003e\u003c回应在这里\u003e\u003c/回复\u003e 在审查用户的指令和回应后： 请简要说明您的总分，最多100字。 以以下格式给出评分：“得分：\u003c总分\u003e” 请记住，从AI助手的角度进行评估，根据需要使用网络搜索知识。``` 之后就是使用打分后的数据对模型进行训练。论文也调研了两种训练方法:\n一种是只取评分高的回复,然后使用SFT的方法进行微调 另一种是取评分最高和最低的回复,构成一对训练数据,然后使用DPO的方法进行微调。论文发现,使用DPO的方法进行微调的效果更好。论文提到构造训练对的方法参考了Some things are more cringe than others。 后话 论文提到的方法，模型可以不断的迭代下去，直到模型的能力达到预期的水平。\n创新点在于,奖励模型不是固定的，而是随着指令遵循能力的增强而变得更强。如果评分的质量越来越高,模型就可以为自己创造出超过人类反馈质量的训练数据。这是一个可能的突破口。\n当然,这个方法也有一定局限。比如无限迭代训练是否会导致奖励机制的“欺骗”,模型只追求形式化的高分而不考虑真正的质量;迭代改进的上限如何等。而且，论文提到初始的种子训练数据对结果也很关键。\n整体而言,语言模型通过自评分实现自我训练是一个非常有趣的方向。随着进一步探索，相信会有更多惊喜。\n",
+  "wordCount" : "338",
+  "inLanguage": "zh",
+  "image": "http://localhost:1313/papermod-cover.png","datePublished": "2024-01-30T11:45:08+08:00",
+  "dateModified": "2024-01-30T11:45:08+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "jyd"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/paper/self_rewarding_language_models/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "记要点",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="记要点 (Alt + H)">记要点</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                    <ul class="lang-switch"><li>|</li>
+                        <li>
+                            <a href="http://localhost:1313/en/" title="English"
+                                aria-label="English">English</a>
+                        </li>
+                    </ul>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/archives" title="存档">
+                    <span>存档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/search/" title="搜索">
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">主页</a>&nbsp;»&nbsp;<a href="http://localhost:1313/paper/">Papers</a></div>
+    <h1 class="post-title entry-hint-parent">
+      看论文：Self-Rewarding Language Models
+    </h1>
+    <div class="post-meta"><span title='2024-01-30 11:45:08 +0800 CST'>2024年1月30日</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>jyd</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">目录</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e6%a6%82%e8%bf%b0" aria-label="概述">概述</a></li>
+                <li>
+                    <a href="#%e6%a8%a1%e5%9e%8b%e8%bf%ad%e4%bb%a3%e7%bb%86%e8%8a%82" aria-label="模型迭代细节">模型迭代细节</a></li>
+                <li>
+                    <a href="#%e5%90%8e%e8%af%9d" aria-label="后话">后话</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h3 id="概述">概述<a hidden class="anchor" aria-hidden="true" href="#概述">#</a></h3>
+<p>语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。</p>
+<p>所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。</p>
+<p>论文里面迭代模型的过程是这样的:</p>
+<ul>
+<li>Model0: 没有微调的预训练模型</li>
+<li>Model1: 基于人类反馈数据的微调模型,使用<a href="https://arxiv.org/abs/2308.06259">SFT</a>的方法微调</li>
+<li>Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用<a href="https://arxiv.org/abs/2305.18290">DPO</a>的方法对Model2进行微调</li>
+<li>Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调</li>
+</ul>
+<p>这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。</p>
+<h3 id="模型迭代细节">模型迭代细节<a hidden class="anchor" aria-hidden="true" href="#模型迭代细节">#</a></h3>
+<ol>
+<li>
+<p><strong>Model0</strong>:原始预训练模型</p>
+</li>
+<li>
+<p><strong>Model1</strong>:基于人类反馈数据的微调模型,使用<a href="https://arxiv.org/abs/2308.06259">SFT</a>的方法微调</p>
+</li>
+<li>
+<p><strong>Model2</strong>:基于Model1自评分微调</p>
+<ol>
+<li>
+<p>生成新的指令,具体的方法参考<a href="https://arxiv.org/abs/2212.10560">Aligning Language Models with Self-Generated Instructions</a>和<a href="https://arxiv.org/abs/2212.09689">Tuning Language Models with (Almost) No Human Labor</a></p>
+</li>
+<li>
+<p>基于生成的指令,让Model1给每个输入生成N个回复</p>
+</li>
+<li>
+<p>使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1"> 1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2"> 2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3"> 3</a>
+</span><span class="lnt" id="hl-0-4"><a class="lnlinks" href="#hl-0-4"> 4</a>
+</span><span class="lnt" id="hl-0-5"><a class="lnlinks" href="#hl-0-5"> 5</a>
+</span><span class="lnt" id="hl-0-6"><a class="lnlinks" href="#hl-0-6"> 6</a>
+</span><span class="lnt" id="hl-0-7"><a class="lnlinks" href="#hl-0-7"> 7</a>
+</span><span class="lnt" id="hl-0-8"><a class="lnlinks" href="#hl-0-8"> 8</a>
+</span><span class="lnt" id="hl-0-9"><a class="lnlinks" href="#hl-0-9"> 9</a>
+</span><span class="lnt" id="hl-0-10"><a class="lnlinks" href="#hl-0-10">10</a>
+</span><span class="lnt" id="hl-0-11"><a class="lnlinks" href="#hl-0-11">11</a>
+</span><span class="lnt" id="hl-0-12"><a class="lnlinks" href="#hl-0-12">12</a>
+</span><span class="lnt" id="hl-0-13"><a class="lnlinks" href="#hl-0-13">13</a>
+</span><span class="lnt" id="hl-0-14"><a class="lnlinks" href="#hl-0-14">14</a>
+</span><span class="lnt" id="hl-0-15"><a class="lnlinks" href="#hl-0-15">15</a>
+</span><span class="lnt" id="hl-0-16"><a class="lnlinks" href="#hl-0-16">16</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="na">Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. </span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">User: &lt;INSTRUCTION_HERE&gt; </span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">&lt;response&gt;&lt;RESPONSE_HERE&gt;&lt;/response&gt; </span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">After examining the user’s instruction and the response: </span>
+</span></span><span class="line"><span class="cl"><span class="na">- Briefly justify your total score, up to 100 words.</span>
+</span></span><span class="line"><span class="cl"><span class="na">- Conclude with the score using the format: “Score: &lt;total points&gt;” </span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>翻译成中文：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1"> 1</a>
+</span><span class="lnt" id="hl-1-2"><a class="lnlinks" href="#hl-1-2"> 2</a>
+</span><span class="lnt" id="hl-1-3"><a class="lnlinks" href="#hl-1-3"> 3</a>
+</span><span class="lnt" id="hl-1-4"><a class="lnlinks" href="#hl-1-4"> 4</a>
+</span><span class="lnt" id="hl-1-5"><a class="lnlinks" href="#hl-1-5"> 5</a>
+</span><span class="lnt" id="hl-1-6"><a class="lnlinks" href="#hl-1-6"> 6</a>
+</span><span class="lnt" id="hl-1-7"><a class="lnlinks" href="#hl-1-7"> 7</a>
+</span><span class="lnt" id="hl-1-8"><a class="lnlinks" href="#hl-1-8"> 8</a>
+</span><span class="lnt" id="hl-1-9"><a class="lnlinks" href="#hl-1-9"> 9</a>
+</span><span class="lnt" id="hl-1-10"><a class="lnlinks" href="#hl-1-10">10</a>
+</span><span class="lnt" id="hl-1-11"><a class="lnlinks" href="#hl-1-11">11</a>
+</span><span class="lnt" id="hl-1-12"><a class="lnlinks" href="#hl-1-12">12</a>
+</span><span class="lnt" id="hl-1-13"><a class="lnlinks" href="#hl-1-13">13</a>
+</span><span class="lnt" id="hl-1-14"><a class="lnlinks" href="#hl-1-14">14</a>
+</span><span class="lnt" id="hl-1-15"><a class="lnlinks" href="#hl-1-15">15</a>
+</span><span class="lnt" id="hl-1-16"><a class="lnlinks" href="#hl-1-16">16</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="na">将用户的指令和相应的回复使用下面描述的5分评分系统进行对比。根据每个标准的满意度，积累得分：</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">如果回应与用户的查询相关并提供一些与之相关的信息，即使不完整或包含一些无关内容，加1分。</span>
+</span></span><span class="line"><span class="cl"><span class="na">如果回应涵盖了用户问题的大部分内容，但没有完全解决问题或提供直接答案，再加1分。</span>
+</span></span><span class="line"><span class="cl"><span class="na">如果回应以有用的方式回答了用户问题的基本要点，无论是否看起来像是由AI助手编写，或者是否包含通常在博客或搜索结果中找到的元素，再加1分。</span>
+</span></span><span class="line"><span class="cl"><span class="na">如果回应明确以AI助手的角度编写，直接而全面地回答了用户问题，组织良好并且有帮助，即使在清晰度、简洁度或焦点方面仍有轻微改进的空间，再加1分。</span>
+</span></span><span class="line"><span class="cl"><span class="na">如果回应完美地根据用户的问题量身定制，没有多余的信息，反映出专业知识，展示了高质量、引人入胜且见地深刻的回答，再加1分。</span>
+</span></span><span class="line"><span class="cl"><span class="na">用户：&lt;指令在这里&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">&lt;回复&gt;&lt;回应在这里&gt;&lt;/回复&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">在审查用户的指令和回应后：</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="na">请简要说明您的总分，最多100字。</span>
+</span></span><span class="line"><span class="cl"><span class="na">以以下格式给出评分：“得分：&lt;总分&gt;”</span>
+</span></span><span class="line"><span class="cl"><span class="na">请记住，从AI助手的角度进行评估，根据需要使用网络搜索知识。```</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>之后就是使用打分后的数据对模型进行训练。论文也调研了两种训练方法:</p>
+<ul>
+<li>一种是只取评分高的回复,然后使用SFT的方法进行微调</li>
+<li>另一种是取评分最高和最低的回复,构成一对训练数据,然后使用DPO的方法进行微调。论文发现,使用DPO的方法进行微调的效果更好。论文提到构造训练对的方法参考了<a href="https://arxiv.org/abs/2312.16682">Some things are more cringe than others</a>。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="后话">后话<a hidden class="anchor" aria-hidden="true" href="#后话">#</a></h3>
+<p>论文提到的方法，模型可以不断的迭代下去，直到模型的能力达到预期的水平。</p>
+<p>创新点在于,奖励模型不是固定的，而是随着指令遵循能力的增强而变得更强。如果评分的质量越来越高,模型就可以为自己创造出超过人类反馈质量的训练数据。这是一个可能的突破口。</p>
+<p>当然,这个方法也有一定局限。比如无限迭代训练是否会导致奖励机制的“欺骗”,模型只追求形式化的高分而不考虑真正的质量;迭代改进的上限如何等。而且，论文提到初始的种子训练数据对结果也很关键。</p>
+<p>整体而言,语言模型通过自评分实现自我训练是一个非常有趣的方向。随着进一步探索，相信会有更多惊喜。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">大模型</a></li>
+      <li><a href="http://localhost:1313/tags/dpo/">DPO</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">强化学习</a></li>
+      <li><a href="http://localhost:1313/tags/%E8%AE%BA%E6%96%87/">论文</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/paper/wurstchen/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>WURSTCHEN</span>
+  </a>
+  <a class="next" href="http://localhost:1313/transformers/multi-gpu-training-dp-vs-ddp/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>多卡训练：DP vs DDP</span>
+  </a>
+</nav>
+
+  </footer><script src="https://giscus.app/client.js"
+        data-repo="ji-yaodian/blog.jyd.me"
+        data-repo-id="R_kgDOJiC9Qg"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOJiC9Qs4CczHJ"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

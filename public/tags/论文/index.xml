@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>论文 on 记要点</title>
+    <link>http://localhost:1313/tags/%E8%AE%BA%E6%96%87/</link>
+    <description>Recent content in 论文 on 记要点</description>
+    <image>
+      <title>记要点</title>
+      <url>http://localhost:1313/papermod-cover.png</url>
+      <link>http://localhost:1313/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-CN</language>
+    <copyright>知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</copyright>
+    <lastBuildDate>Tue, 30 Jan 2024 11:45:08 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E8%AE%BA%E6%96%87/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>看论文：Self-Rewarding Language Models</title>
+      <link>http://localhost:1313/paper/self_rewarding_language_models/</link>
+      <pubDate>Tue, 30 Jan 2024 11:45:08 +0800</pubDate>
+      <guid>http://localhost:1313/paper/self_rewarding_language_models/</guid>
+      <description>&lt;h3 id=&#34;概述&#34;&gt;概述&lt;/h3&gt;
+&lt;p&gt;语言模型通常的训练方法是先收集一大堆人类的反馈,然后基于这些反馈教模型“说话”。但这种依赖外部信号的机制缺点也很明显,模型的能力受限于人类反馈的数据指令。&lt;/p&gt;
+&lt;p&gt;所以论文提出,我们得让模型自己动手试错、自我完善。具体想法是让模型给自己当老师,让它边生成回复边给自己打分。这样模型就可以根据自己的评价,找出好和不好的回答,进而再基于这些评分来改进模型。&lt;/p&gt;
+&lt;p&gt;论文里面迭代模型的过程是这样的:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Model0: 没有微调的预训练模型&lt;/li&gt;
+&lt;li&gt;Model1: 基于人类反馈数据的微调模型,使用&lt;a href=&#34;https://arxiv.org/abs/2308.06259&#34;&gt;SFT&lt;/a&gt;的方法微调&lt;/li&gt;
+&lt;li&gt;Model2: 使用Model1生成的回复,然后使用Model1对回复进行打分,选出好的和不好的结果,用这些结果使用&lt;a href=&#34;https://arxiv.org/abs/2305.18290&#34;&gt;DPO&lt;/a&gt;的方法对Model2进行微调&lt;/li&gt;
+&lt;li&gt;Model3: 使用Model2生成的回复,然后使用Model2对回复进行打分,选出好的和不好的结果,用这些结果使用DPO的方法对Model3进行微调&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这样,就可以不断的迭代下去,直到模型的能力达到预期的水平。&lt;/p&gt;
+&lt;h3 id=&#34;模型迭代细节&#34;&gt;模型迭代细节&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Model0&lt;/strong&gt;:原始预训练模型&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Model1&lt;/strong&gt;:基于人类反馈数据的微调模型,使用&lt;a href=&#34;https://arxiv.org/abs/2308.06259&#34;&gt;SFT&lt;/a&gt;的方法微调&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Model2&lt;/strong&gt;:基于Model1自评分微调&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;生成新的指令,具体的方法参考&lt;a href=&#34;https://arxiv.org/abs/2212.10560&#34;&gt;Aligning Language Models with Self-Generated Instructions&lt;/a&gt;和&lt;a href=&#34;https://arxiv.org/abs/2212.09689&#34;&gt;Tuning Language Models with (Almost) No Human Labor&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;基于生成的指令,让Model1给每个输入生成N个回复&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用Model1对每个回复进行打分,返回的分数是0-5分。使用如下的Prompt:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-1&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-1&#34;&gt; 1&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-2&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-2&#34;&gt; 2&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-3&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-3&#34;&gt; 3&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-4&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-4&#34;&gt; 4&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-5&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-5&#34;&gt; 5&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-6&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-6&#34;&gt; 6&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-7&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-7&#34;&gt; 7&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-8&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-8&#34;&gt; 8&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-9&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-9&#34;&gt; 9&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-10&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-10&#34;&gt;10&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-11&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-11&#34;&gt;11&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-12&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-12&#34;&gt;12&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-13&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-13&#34;&gt;13&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-14&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-14&#34;&gt;14&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-15&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-15&#34;&gt;15&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-16&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-16&#34;&gt;16&lt;/a&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-ini&#34; data-lang=&#34;ini&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;Review the user’s question and the corresponding response using the additive 5-point scoring system described below. Points are accumulated based on the satisfaction of each criterion: &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Add 1 point if the response is relevant and provides some information related to the user’s inquiry, even if it is incomplete or contains some irrelevant content. &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Add another point if the response addresses a substantial portion of the user’s question, but does not completely resolve the query or provide a direct answer. &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Award a third point if the response answers the basic elements of the user’s question in a useful way, regardless of whether it seems to have been written by an AI Assistant or if it has elements typically found in blogs or search results. &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Grant a fourth point if the response is clearly written from an AI Assistant’s perspective, addressing the user’s question directly and comprehensively, and is well-organized and helpful, even if there is slight room for improvement in clarity, conciseness or focus. &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Bestow a fifth point for a response that is impeccably tailored to the user’s question by an AI Assistant, without extraneous information, reflecting expert knowledge, and demonstrating a high-quality, engaging, and insightful answer. &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;User: &amp;lt;INSTRUCTION_HERE&amp;gt; &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;&amp;lt;response&amp;gt;&amp;lt;RESPONSE_HERE&amp;gt;&amp;lt;/response&amp;gt; &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;After examining the user’s instruction and the response: &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Briefly justify your total score, up to 100 words.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;- Conclude with the score using the format: “Score: &amp;lt;total points&amp;gt;” &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;Remember to assess from the AI Assistant perspective, utilizing web search knowledge as necess&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;翻译成中文：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
