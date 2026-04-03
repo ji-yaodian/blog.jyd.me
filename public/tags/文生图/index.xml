@@ -1,0 +1,1097 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>文生图 on 记要点</title>
+    <link>http://localhost:1313/tags/%E6%96%87%E7%94%9F%E5%9B%BE/</link>
+    <description>Recent content in 文生图 on 记要点</description>
+    <image>
+      <title>记要点</title>
+      <url>http://localhost:1313/papermod-cover.png</url>
+      <link>http://localhost:1313/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-CN</language>
+    <copyright>知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</copyright>
+    <lastBuildDate>Fri, 15 Mar 2024 22:31:50 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E6%96%87%E7%94%9F%E5%9B%BE/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>DesignEdit: Multi-Layered Latent Decomposition and Fusion for Unified &amp; Accurate Image Editing</title>
+      <link>http://localhost:1313/paper/designedit/</link>
+      <pubDate>Fri, 15 Mar 2024 22:31:50 +0800</pubDate>
+      <guid>http://localhost:1313/paper/designedit/</guid>
+      <description>&lt;p&gt;以下是论文翻译&lt;/p&gt;
+&lt;h2 id=&#34;摘要&#34;&gt;摘要&lt;/h2&gt;
+&lt;p&gt;近年来,如何实现精确的图像编辑越来越受到关注,特别是考虑到文本到图像生成模型的显著成功。为了将各种空间感知图像编辑能力统一到一个框架中,我们采用了设计领域的层概念,通过各种操作灵活地操作对象。关键的洞见是将空间感知图像编辑任务转换为两个子任务的组合:多层潜在分解和多层潜在融合。&lt;/p&gt;
+&lt;p&gt;首先,我们将源图像的潜在表示分割为多个层,其中包括几个对象层和一个需要可靠修复的不完整背景层。为了避免额外的调整,我们进一步探索了自注意力机制中的内在修复能力。我们引入了一种键掩码自注意力方案,该方案可以将周围的上下文信息传播到掩码区域,同时减轻其对掩码外区域的影响。&lt;/p&gt;
+&lt;p&gt;其次,我们提出了一种指令引导的潜在融合,将多层潜在表示粘贴到画布上。我们还在潜伏空间中引入了伪影抑制方案,以提高修复质量。由于这种多层表示固有的模块化优势,我们可以实现准确的图像编辑,并证明我们的方法始终优于最新的空间编辑方法,如Self-Guidance和DiffEditor。&lt;/p&gt;
+&lt;p&gt;最后,我们展示了我们的方法是一个统一的框架,可以在六个以上的不同编辑任务上支持各种准确的图像编辑任务。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;[Uncaptioned image]&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/paper/designedit/x1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;图 1：视觉设计图像编辑实例。我们的方法借助无需训练的统一框架推动了一系列图像编辑操作，从而实现设计图像的精准空间感知式编辑。我们的方法能够同步操作不同对象，并同时施行各种操作。所有结果均通过一种扩散去噪过程生成。&lt;/p&gt;
+&lt;h2 id=&#34;1-简介&#34;&gt;1. 简介&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;Refer to caption&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/paper/designedit/fig_2-20240412175143776.jpg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;图 2. 我们的方法与 Self-Guidance 和 DiffEditor 之间的对比。我们在（a）中汇报了图像质量和编辑准确性的胜率对比。针对每次对比，我们选取了 10 个包含移动和调整大小等多种操作的示例。要求用户就图像质量和编辑准确性这两方面进行投票。“平局”选项表示效果相同。我们收集了 73 名用户的答案，每个指标总计有 1460 票。&lt;/p&gt;
+&lt;p&gt;尽管通过训练大规模的文本到图像扩散模型在图像生成方面取得了巨大成就[18、23、27、26、10、15]，正如近期具有开创性的研究，包括 SDXL[21]、DALL·E3[19、3]和 Ideogram1 所展示的那样，这些模型面临着需要具备数字能力或空间排列能力的提示所带来的挑战。例如，图 1（a）展示了由 DALL·E3 生成的一幅引人入胜的故事书设计图像，其文字提示描述了“三只小猪”的故事。我们发现图中有四只猪，这与文字提示中的“三只猪”不相符。为了克服这些限制，前沿的努力[9、17、28、16]已经致力于开发精确的空间感知图像编辑技术，旨在弥合用户期望与初始生成结果之间的差距。&lt;/p&gt;
+&lt;p&gt;与之前的方法[9、17、28、16]需要结合为不同编辑任务设计的多种编辑指导方案，并通过额外的反向传播来更新潜在表示不同，我们为精确的空间感知图像编辑任务提出了一种无需训练、仅向前、且统一的框架。我们的方法将大多数具有代表性的空间感知编辑任务转化为一个双重过程。该过程首先根据精确的用户指令和层分割掩码来分解源图像的多层潜在表示，然后按照准确的布局排列将这些表示集成到目标图像中。为了确保多个图像层的精确空间感知编辑质量，我们根据目标布局排列明确融合多层潜在，以形成目标潜在表示。此外，我们支持利用 GPT-4V[34]的推理和视觉规划能力来协助制定用户指令并生成（和完善）准确的布局安排。&lt;/p&gt;
+&lt;p&gt;我们明确了执行多层潜在分解与融合过程中的关键挑战，并提出了以下三个非平凡的技术贡献：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;首先，我们发现执行多层潜在分解的关键挑战之一在于生成高品质的背景层。该层不仅要对原始层保持忠实，还需修复分解对象层中的不完整区域。我们没有采用现有的修复方法，而是引入了一种极为简单却更可靠的self-attention[31]key-masking方法，其能一直达成更佳的修复质量。&lt;/li&gt;
+&lt;li&gt;其次，我们需要解决的另一个挑战是修复区域可能会受到一些无关区域的负面影响，从而产生瑕疵。因此，我们提出了一种瑕疵抑制方案以进一步提升修复质量。&lt;/li&gt;
+&lt;li&gt;第三，我们通过将各种图像编辑任务分解为两个基本子任务，引入了一个统一的框架：多层潜在分解与多层潜在融合。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;我们开展了广泛的用户研究，以评估我们方法的图像编辑质量，并将其与 Self-Guidance[9]和 DiffEditor[17]的最新进展进行对比。结果在图 2 中展示，呈现了在两个关键维度上的胜率：图像质量和编辑保真度。我们的研究结果表明，我们的方法在各类编辑任务，如对象移动和尺寸调整上，明显优于这两种基准方法。&lt;/p&gt;
+&lt;p&gt;此外，我们还将我们的方法应用于一系列具有挑战性的设计图像编辑任务，例如对象移除、尺寸调整、移动、重复、翻转、相机平移、缩小、合成多个图像以及编辑版式或装饰等。我们期望能推动更精确的空间感知图像编辑技术的进一步发展。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Refer to caption&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/paper/designedit/fig_3.jpg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;图 3：展示我们方法的整体框架：在多层分解阶段，给定用户的编辑指令和源图像，我们首先使用 GPT-4V 执行指令规划，生成一组详细的分层编辑指令。接着，我们将源图像分割成多个图像层，包括需要额外进行修复的背景层（由新颖的关键掩码自关注方案来实现）以及要操作对象的其他对象层。&lt;/p&gt;
+&lt;p&gt;对于多层融合阶段，我们依据层的顺序和逐层指令的顺序，依次将它们粘贴到潜在空间的画布上。我们进一步应用多个去噪步骤来协调融合的多层潜在表示。此外，我们还进行瑕疵抑制以提升背景修复质量。&lt;/p&gt;
+&lt;h2 id=&#34;2-相关工作&#34;&gt;2. 相关工作&lt;/h2&gt;
+&lt;h3 id=&#34;21-潜在扩散模型&#34;&gt;2.1 潜在扩散模型&lt;/h3&gt;
+&lt;p&gt;潜在扩散模型[24]（LDM）通过在压缩的潜在空间操作，而非在图像层面操作，为生成式建模领域引入了一种开创性的方法。此方法加快了生成过程，降低了计算需求。近来，采用潜在扩散模型架构并经过大量数据训练的大规模条件扩散模型[24, 21, 27]，能够生成细节丰富且视觉上引人注目的图像。像混合潜在扩散[2]等图像编辑方法表明，在潜在空间操作可实现比在图像层面操作[1]更快的推理速度和更高的精度，来完成局部图像调整。在我们的工作中，我们采用了最先进的大规模文本到图像 LDM，即具有 U-Net 结构[25]的稳定扩散[24, 21]，以进一步探索用于空间感知图像编辑的潜在操作。&lt;/p&gt;
+&lt;h3 id=&#34;22-引导驱动的空间感知图像编辑&#34;&gt;2.2 引导驱动的空间感知图像编辑&lt;/h3&gt;
+&lt;p&gt;空间编辑是指通过考虑图像内的空间上下文和关系来修改图像。与就地编辑方法[12, 5, 13, 4]不同。受扩散模型分类器引导策略的启发，无训练布局控制[7]和 Boxdiff[32]利用位置信息损失来约束潜在空间，以实现带有布局控制的空间感知图像生成。自我引导[9]将分类器引导引入基于扩散的图像编辑，以完成如对象移动和调整大小等任务。受 DragGAN[20]启发的 DragonDiffusion[16]，将基于拖动的图像编辑任务融入扩散模型，扩展到更多空间感知的编辑任务，如使用对象蒙版等图像提示的对象移动和调整大小。DiffEditor[17]改进了 DragonDiffusion，在精确图像编辑任务中达到了最先进的结果。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WURSTCHEN</title>
+      <link>http://localhost:1313/paper/wurstchen/</link>
+      <pubDate>Fri, 15 Mar 2024 17:31:50 +0800</pubDate>
+      <guid>http://localhost:1313/paper/wurstchen/</guid>
+      <description>&lt;p&gt;论文原文&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-1&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-1&#34;&gt;  1&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-2&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-2&#34;&gt;  2&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-3&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-3&#34;&gt;  3&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-4&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-4&#34;&gt;  4&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-5&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-5&#34;&gt;  5&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-6&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-6&#34;&gt;  6&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-7&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-7&#34;&gt;  7&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-8&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-8&#34;&gt;  8&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-9&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-9&#34;&gt;  9&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-10&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-10&#34;&gt; 10&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-11&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-11&#34;&gt; 11&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-12&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-12&#34;&gt; 12&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-13&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-13&#34;&gt; 13&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-14&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-14&#34;&gt; 14&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-15&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-15&#34;&gt; 15&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-16&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-16&#34;&gt; 16&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-17&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-17&#34;&gt; 17&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-18&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-18&#34;&gt; 18&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-19&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-19&#34;&gt; 19&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-20&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-20&#34;&gt; 20&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-21&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-21&#34;&gt; 21&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-22&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-22&#34;&gt; 22&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-23&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-23&#34;&gt; 23&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-24&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-24&#34;&gt; 24&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-25&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-25&#34;&gt; 25&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-26&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-26&#34;&gt; 26&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-27&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-27&#34;&gt; 27&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-28&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-28&#34;&gt; 28&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-29&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-29&#34;&gt; 29&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-30&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-30&#34;&gt; 30&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-31&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-31&#34;&gt; 31&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-32&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-32&#34;&gt; 32&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-33&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-33&#34;&gt; 33&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-34&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-34&#34;&gt; 34&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-35&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-35&#34;&gt; 35&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-36&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-36&#34;&gt; 36&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-37&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-37&#34;&gt; 37&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-38&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-38&#34;&gt; 38&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-39&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-39&#34;&gt; 39&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-40&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-40&#34;&gt; 40&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-41&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-41&#34;&gt; 41&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-42&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-42&#34;&gt; 42&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-43&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-43&#34;&gt; 43&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-44&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-44&#34;&gt; 44&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-45&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-45&#34;&gt; 45&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-46&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-46&#34;&gt; 46&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-47&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-47&#34;&gt; 47&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-48&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-48&#34;&gt; 48&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-49&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-49&#34;&gt; 49&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-50&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-50&#34;&gt; 50&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-51&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-51&#34;&gt; 51&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-52&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-52&#34;&gt; 52&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-53&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-53&#34;&gt; 53&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-54&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-54&#34;&gt; 54&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-55&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-55&#34;&gt; 55&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-56&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-56&#34;&gt; 56&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-57&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-57&#34;&gt; 57&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-58&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-58&#34;&gt; 58&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-59&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-59&#34;&gt; 59&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-60&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-60&#34;&gt; 60&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-61&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-61&#34;&gt; 61&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-62&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-62&#34;&gt; 62&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-63&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-63&#34;&gt; 63&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-64&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-64&#34;&gt; 64&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-65&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-65&#34;&gt; 65&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-66&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-66&#34;&gt; 66&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-67&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-67&#34;&gt; 67&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-68&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-68&#34;&gt; 68&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-69&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-69&#34;&gt; 69&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-70&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-70&#34;&gt; 70&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-71&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-71&#34;&gt; 71&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-72&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-72&#34;&gt; 72&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-73&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-73&#34;&gt; 73&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-74&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-74&#34;&gt; 74&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-75&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-75&#34;&gt; 75&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-76&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-76&#34;&gt; 76&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-77&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-77&#34;&gt; 77&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-78&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-78&#34;&gt; 78&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-79&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-79&#34;&gt; 79&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-80&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-80&#34;&gt; 80&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-81&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-81&#34;&gt; 81&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-82&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-82&#34;&gt; 82&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-83&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-83&#34;&gt; 83&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-84&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-84&#34;&gt; 84&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-85&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-85&#34;&gt; 85&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-86&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-86&#34;&gt; 86&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-87&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-87&#34;&gt; 87&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-88&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-88&#34;&gt; 88&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-89&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-89&#34;&gt; 89&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-90&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-90&#34;&gt; 90&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-91&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-91&#34;&gt; 91&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-92&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-92&#34;&gt; 92&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-93&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-93&#34;&gt; 93&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-94&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-94&#34;&gt; 94&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-95&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-95&#34;&gt; 95&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-96&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-96&#34;&gt; 96&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-97&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-97&#34;&gt; 97&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-98&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-98&#34;&gt; 98&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-99&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-99&#34;&gt; 99&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-100&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-100&#34;&gt;100&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-101&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-101&#34;&gt;101&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-102&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-102&#34;&gt;102&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-103&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-103&#34;&gt;103&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-104&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-104&#34;&gt;104&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-105&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-105&#34;&gt;105&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-106&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-106&#34;&gt;106&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-107&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-107&#34;&gt;107&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-108&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-108&#34;&gt;108&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-109&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-109&#34;&gt;109&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-110&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-110&#34;&gt;110&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-111&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-111&#34;&gt;111&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-112&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-112&#34;&gt;112&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-113&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-113&#34;&gt;113&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-114&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-114&#34;&gt;114&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-115&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-115&#34;&gt;115&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-116&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-116&#34;&gt;116&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-117&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-117&#34;&gt;117&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-118&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-118&#34;&gt;118&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-119&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-119&#34;&gt;119&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-120&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-120&#34;&gt;120&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-121&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-121&#34;&gt;121&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-122&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-122&#34;&gt;122&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-123&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-123&#34;&gt;123&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-124&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-124&#34;&gt;124&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-125&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-125&#34;&gt;125&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-126&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-126&#34;&gt;126&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-127&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-127&#34;&gt;127&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-128&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-128&#34;&gt;128&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-129&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-129&#34;&gt;129&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-130&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-130&#34;&gt;130&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-131&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-131&#34;&gt;131&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-132&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-132&#34;&gt;132&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-133&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-133&#34;&gt;133&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-134&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-134&#34;&gt;134&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-135&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-135&#34;&gt;135&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-136&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-136&#34;&gt;136&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-137&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-137&#34;&gt;137&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-138&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-138&#34;&gt;138&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-139&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-139&#34;&gt;139&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-140&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-140&#34;&gt;140&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-141&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-141&#34;&gt;141&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-142&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-142&#34;&gt;142&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-143&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-143&#34;&gt;143&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-144&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-144&#34;&gt;144&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-145&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-145&#34;&gt;145&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-146&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-146&#34;&gt;146&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-147&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-147&#34;&gt;147&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-148&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-148&#34;&gt;148&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-149&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-149&#34;&gt;149&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-150&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-150&#34;&gt;150&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-151&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-151&#34;&gt;151&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-152&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-152&#34;&gt;152&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-153&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-153&#34;&gt;153&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-154&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-154&#34;&gt;154&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-155&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-155&#34;&gt;155&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-156&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-156&#34;&gt;156&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-157&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-157&#34;&gt;157&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-158&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-158&#34;&gt;158&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-159&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-159&#34;&gt;159&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-160&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-160&#34;&gt;160&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-161&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-161&#34;&gt;161&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-162&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-162&#34;&gt;162&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-163&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-163&#34;&gt;163&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-164&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-164&#34;&gt;164&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-165&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-165&#34;&gt;165&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-166&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-166&#34;&gt;166&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-167&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-167&#34;&gt;167&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-168&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-168&#34;&gt;168&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-169&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-169&#34;&gt;169&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-170&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-170&#34;&gt;170&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-171&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-171&#34;&gt;171&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-172&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-172&#34;&gt;172&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-173&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-173&#34;&gt;173&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-174&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-174&#34;&gt;174&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-175&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-175&#34;&gt;175&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-176&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-176&#34;&gt;176&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-177&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-177&#34;&gt;177&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-178&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-178&#34;&gt;178&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-179&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-179&#34;&gt;179&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-180&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-180&#34;&gt;180&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-181&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-181&#34;&gt;181&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-182&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-182&#34;&gt;182&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-183&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-183&#34;&gt;183&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-184&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-184&#34;&gt;184&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-185&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-185&#34;&gt;185&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-186&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-186&#34;&gt;186&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-187&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-187&#34;&gt;187&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-188&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-188&#34;&gt;188&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-189&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-189&#34;&gt;189&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-190&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-190&#34;&gt;190&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-191&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-191&#34;&gt;191&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-192&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-192&#34;&gt;192&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-193&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-193&#34;&gt;193&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-194&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-194&#34;&gt;194&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-195&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-195&#34;&gt;195&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-196&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-196&#34;&gt;196&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-197&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-197&#34;&gt;197&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-198&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-198&#34;&gt;198&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-199&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-199&#34;&gt;199&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-200&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-200&#34;&gt;200&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-201&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-201&#34;&gt;201&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-202&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-202&#34;&gt;202&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-203&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-203&#34;&gt;203&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-204&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-204&#34;&gt;204&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-205&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-205&#34;&gt;205&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-206&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-206&#34;&gt;206&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-207&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-207&#34;&gt;207&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-208&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-208&#34;&gt;208&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-209&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-209&#34;&gt;209&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-210&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-210&#34;&gt;210&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-211&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-211&#34;&gt;211&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-212&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-212&#34;&gt;212&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-213&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-213&#34;&gt;213&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-214&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-214&#34;&gt;214&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-215&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-215&#34;&gt;215&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-216&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-216&#34;&gt;216&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-217&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-217&#34;&gt;217&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-218&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-218&#34;&gt;218&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-219&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-219&#34;&gt;219&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-220&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-220&#34;&gt;220&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-221&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-221&#34;&gt;221&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-222&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-222&#34;&gt;222&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-223&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-223&#34;&gt;223&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-224&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-224&#34;&gt;224&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-225&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-225&#34;&gt;225&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-226&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-226&#34;&gt;226&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-227&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-227&#34;&gt;227&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-228&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-228&#34;&gt;228&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-229&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-229&#34;&gt;229&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-230&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-230&#34;&gt;230&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-231&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-231&#34;&gt;231&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-232&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-232&#34;&gt;232&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-233&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-233&#34;&gt;233&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-234&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-234&#34;&gt;234&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-235&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-235&#34;&gt;235&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-236&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-236&#34;&gt;236&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-237&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-237&#34;&gt;237&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-238&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-238&#34;&gt;238&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-239&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-239&#34;&gt;239&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-240&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-240&#34;&gt;240&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-241&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-241&#34;&gt;241&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-242&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-242&#34;&gt;242&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-243&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-243&#34;&gt;243&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-244&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-244&#34;&gt;244&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-245&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-245&#34;&gt;245&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-246&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-246&#34;&gt;246&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-247&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-247&#34;&gt;247&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-248&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-248&#34;&gt;248&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-249&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-249&#34;&gt;249&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-250&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-250&#34;&gt;250&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-251&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-251&#34;&gt;251&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-252&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-252&#34;&gt;252&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-253&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-253&#34;&gt;253&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-254&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-254&#34;&gt;254&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-255&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-255&#34;&gt;255&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-256&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-256&#34;&gt;256&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-257&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-257&#34;&gt;257&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-258&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-258&#34;&gt;258&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-259&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-259&#34;&gt;259&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-260&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-260&#34;&gt;260&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-261&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-261&#34;&gt;261&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-262&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-262&#34;&gt;262&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-263&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-263&#34;&gt;263&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-264&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-264&#34;&gt;264&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-265&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-265&#34;&gt;265&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-266&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-266&#34;&gt;266&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-267&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-267&#34;&gt;267&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-268&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-268&#34;&gt;268&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-269&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-269&#34;&gt;269&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-270&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-270&#34;&gt;270&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-271&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-271&#34;&gt;271&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-272&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-272&#34;&gt;272&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-273&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-273&#34;&gt;273&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-274&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-274&#34;&gt;274&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-275&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-275&#34;&gt;275&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-276&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-276&#34;&gt;276&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-277&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-277&#34;&gt;277&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-278&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-278&#34;&gt;278&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-279&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-279&#34;&gt;279&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-280&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-280&#34;&gt;280&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-281&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-281&#34;&gt;281&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-282&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-282&#34;&gt;282&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-283&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-283&#34;&gt;283&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-284&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-284&#34;&gt;284&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-285&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-285&#34;&gt;285&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-286&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-286&#34;&gt;286&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-287&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-287&#34;&gt;287&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-288&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-288&#34;&gt;288&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-289&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-289&#34;&gt;289&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-290&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-290&#34;&gt;290&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-291&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-291&#34;&gt;291&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-292&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-292&#34;&gt;292&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-293&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-293&#34;&gt;293&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-294&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-294&#34;&gt;294&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-295&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-295&#34;&gt;295&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-296&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-296&#34;&gt;296&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-297&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-297&#34;&gt;297&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-298&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-298&#34;&gt;298&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-299&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-299&#34;&gt;299&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-300&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-300&#34;&gt;300&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-301&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-301&#34;&gt;301&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-302&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-302&#34;&gt;302&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-303&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-303&#34;&gt;303&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-304&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-304&#34;&gt;304&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-305&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-305&#34;&gt;305&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-306&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-306&#34;&gt;306&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-307&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-307&#34;&gt;307&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-308&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-308&#34;&gt;308&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-309&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-309&#34;&gt;309&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-310&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-310&#34;&gt;310&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-311&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-311&#34;&gt;311&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-312&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-312&#34;&gt;312&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-313&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-313&#34;&gt;313&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-314&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-314&#34;&gt;314&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-315&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-315&#34;&gt;315&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-316&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-316&#34;&gt;316&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-317&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-317&#34;&gt;317&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-318&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-318&#34;&gt;318&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-319&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-319&#34;&gt;319&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-320&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-320&#34;&gt;320&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-321&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-321&#34;&gt;321&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-322&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-322&#34;&gt;322&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-323&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-323&#34;&gt;323&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-324&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-324&#34;&gt;324&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-325&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-325&#34;&gt;325&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-326&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-326&#34;&gt;326&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-327&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-327&#34;&gt;327&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-328&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-328&#34;&gt;328&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-329&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-329&#34;&gt;329&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-330&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-330&#34;&gt;330&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-331&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-331&#34;&gt;331&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-332&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-332&#34;&gt;332&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-333&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-333&#34;&gt;333&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-334&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-334&#34;&gt;334&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-335&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-335&#34;&gt;335&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-336&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-336&#34;&gt;336&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-337&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-337&#34;&gt;337&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-338&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-338&#34;&gt;338&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-339&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-339&#34;&gt;339&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-340&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-340&#34;&gt;340&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-341&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-341&#34;&gt;341&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-342&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-342&#34;&gt;342&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-343&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-343&#34;&gt;343&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-344&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-344&#34;&gt;344&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-345&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-345&#34;&gt;345&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-346&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-346&#34;&gt;346&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-347&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-347&#34;&gt;347&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-348&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-348&#34;&gt;348&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-349&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-349&#34;&gt;349&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-350&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-350&#34;&gt;350&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-351&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-351&#34;&gt;351&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-352&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-352&#34;&gt;352&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-353&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-353&#34;&gt;353&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-354&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-354&#34;&gt;354&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-355&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-355&#34;&gt;355&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-356&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-356&#34;&gt;356&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-357&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-357&#34;&gt;357&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-358&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-358&#34;&gt;358&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-359&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-359&#34;&gt;359&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-360&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-360&#34;&gt;360&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-361&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-361&#34;&gt;361&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-362&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-362&#34;&gt;362&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-363&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-363&#34;&gt;363&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-364&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-364&#34;&gt;364&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-365&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-365&#34;&gt;365&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-366&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-366&#34;&gt;366&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-367&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-367&#34;&gt;367&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-368&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-368&#34;&gt;368&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-369&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-369&#34;&gt;369&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-370&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-370&#34;&gt;370&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-371&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-371&#34;&gt;371&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-372&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-372&#34;&gt;372&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-373&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-373&#34;&gt;373&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-374&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-374&#34;&gt;374&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-375&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-375&#34;&gt;375&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-376&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-376&#34;&gt;376&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-377&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-377&#34;&gt;377&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-378&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-378&#34;&gt;378&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-379&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-379&#34;&gt;379&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-380&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-380&#34;&gt;380&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-381&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-381&#34;&gt;381&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-382&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-382&#34;&gt;382&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-383&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-383&#34;&gt;383&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-384&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-384&#34;&gt;384&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-385&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-385&#34;&gt;385&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-386&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-386&#34;&gt;386&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-387&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-387&#34;&gt;387&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-388&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-388&#34;&gt;388&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-389&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-389&#34;&gt;389&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-390&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-390&#34;&gt;390&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-391&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-391&#34;&gt;391&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-392&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-392&#34;&gt;392&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-393&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-393&#34;&gt;393&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-394&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-394&#34;&gt;394&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-395&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-395&#34;&gt;395&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-396&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-396&#34;&gt;396&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-397&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-397&#34;&gt;397&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-398&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-398&#34;&gt;398&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-399&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-399&#34;&gt;399&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-400&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-400&#34;&gt;400&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-401&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-401&#34;&gt;401&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-402&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-402&#34;&gt;402&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-403&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-403&#34;&gt;403&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-404&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-404&#34;&gt;404&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-405&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-405&#34;&gt;405&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-406&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-406&#34;&gt;406&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-407&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-407&#34;&gt;407&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-408&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-408&#34;&gt;408&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-409&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-409&#34;&gt;409&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-410&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-410&#34;&gt;410&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-411&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-411&#34;&gt;411&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-412&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-412&#34;&gt;412&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-413&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-413&#34;&gt;413&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-414&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-414&#34;&gt;414&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-415&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-415&#34;&gt;415&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-416&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-416&#34;&gt;416&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-417&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-417&#34;&gt;417&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-418&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-418&#34;&gt;418&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-419&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-419&#34;&gt;419&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-420&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-420&#34;&gt;420&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-421&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-421&#34;&gt;421&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-422&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-422&#34;&gt;422&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-423&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-423&#34;&gt;423&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-424&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-424&#34;&gt;424&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-425&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-425&#34;&gt;425&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-426&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-426&#34;&gt;426&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-427&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-427&#34;&gt;427&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-428&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-428&#34;&gt;428&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-429&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-429&#34;&gt;429&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-430&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-430&#34;&gt;430&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-431&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-431&#34;&gt;431&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-432&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-432&#34;&gt;432&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-433&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-433&#34;&gt;433&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-434&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-434&#34;&gt;434&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-435&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-435&#34;&gt;435&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-436&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-436&#34;&gt;436&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-437&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-437&#34;&gt;437&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-438&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-438&#34;&gt;438&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-439&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-439&#34;&gt;439&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-440&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-440&#34;&gt;440&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-441&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-441&#34;&gt;441&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-442&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-442&#34;&gt;442&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-443&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-443&#34;&gt;443&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-444&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-444&#34;&gt;444&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-445&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-445&#34;&gt;445&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-446&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-446&#34;&gt;446&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-447&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-447&#34;&gt;447&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-448&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-448&#34;&gt;448&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-449&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-449&#34;&gt;449&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-450&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-450&#34;&gt;450&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-451&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-451&#34;&gt;451&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-452&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-452&#34;&gt;452&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-453&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-453&#34;&gt;453&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-454&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-454&#34;&gt;454&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-455&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-455&#34;&gt;455&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-456&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-456&#34;&gt;456&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-457&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-457&#34;&gt;457&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-458&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-458&#34;&gt;458&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-459&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-459&#34;&gt;459&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-460&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-460&#34;&gt;460&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-461&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-461&#34;&gt;461&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-462&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-462&#34;&gt;462&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-463&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-463&#34;&gt;463&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-464&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-464&#34;&gt;464&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-465&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-465&#34;&gt;465&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-466&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-466&#34;&gt;466&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-467&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-467&#34;&gt;467&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-468&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-468&#34;&gt;468&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-469&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-469&#34;&gt;469&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-470&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-470&#34;&gt;470&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-471&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-471&#34;&gt;471&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-472&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-472&#34;&gt;472&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-473&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-473&#34;&gt;473&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-474&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-474&#34;&gt;474&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-475&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-475&#34;&gt;475&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-476&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-476&#34;&gt;476&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-477&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-477&#34;&gt;477&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-478&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-478&#34;&gt;478&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-479&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-479&#34;&gt;479&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-480&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-480&#34;&gt;480&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-481&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-481&#34;&gt;481&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-482&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-482&#34;&gt;482&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-483&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-483&#34;&gt;483&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-484&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-484&#34;&gt;484&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-485&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-485&#34;&gt;485&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-486&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-486&#34;&gt;486&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-487&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-487&#34;&gt;487&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-488&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-488&#34;&gt;488&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-489&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-489&#34;&gt;489&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-490&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-490&#34;&gt;490&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-491&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-491&#34;&gt;491&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-492&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-492&#34;&gt;492&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-493&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-493&#34;&gt;493&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-494&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-494&#34;&gt;494&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-495&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-495&#34;&gt;495&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-496&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-496&#34;&gt;496&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-497&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-497&#34;&gt;497&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-498&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-498&#34;&gt;498&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-499&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-499&#34;&gt;499&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-500&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-500&#34;&gt;500&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-501&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-501&#34;&gt;501&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-502&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-502&#34;&gt;502&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-503&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-503&#34;&gt;503&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-504&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-504&#34;&gt;504&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-505&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-505&#34;&gt;505&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-506&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-506&#34;&gt;506&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-507&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-507&#34;&gt;507&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-508&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-508&#34;&gt;508&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-509&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-509&#34;&gt;509&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-510&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-510&#34;&gt;510&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-511&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-511&#34;&gt;511&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-512&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-512&#34;&gt;512&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-513&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-513&#34;&gt;513&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-514&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-514&#34;&gt;514&lt;/a&gt;
+&lt;/span&gt;&lt;span class=&#34;lnt&#34; id=&#34;hl-0-515&#34;&gt;&lt;a class=&#34;lnlinks&#34; href=&#34;#hl-0-515&#34;&gt;515&lt;/a&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-markdown&#34; data-lang=&#34;markdown&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ABSTRACT
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We introduce Wurstchen, a novel architecture for text-to-image synthesis that ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;combines competitive performance with unprecedented cost-effectiveness for largescale text-to-image diffusion models. A key contribution of our work is to develop
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a latent diffusion technique in which we learn a detailed but extremely compact
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;semantic image representation used to guide the diffusion process. This highly
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compressed representation of an image provides much more detailed guidance
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compared to latent representations of language and this significantly reduces the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;computational requirements to achieve state-of-the-art results. Our approach also
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;improves the quality of text-conditioned image generation based on our user
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;preference study. The training requirements of our approach consists of 24,602
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;A100-GPU hours – compared to Stable Diffusion 2.1’s 200,000 GPU hours. Our
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;approach also requires less training data to achieve these results. Furthermore,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;our compact latent representations allows us to perform inference over twice as
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;fast, slashing the usual costs and carbon footprint of a state-of-the-art (SOTA)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diffusion model significantly, without compromising the end performance. In
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a broader comparison against SOTA models our approach is substantially more
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;efficient and compares favorably in terms of image quality. We believe that this
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;work motivates more emphasis on the prioritization of both performance and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;computational accessibility
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 INTRODUCTION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;State-of-the-art diffusion models (Ho et al., 2020; Saharia et al., 2022; Ramesh et al., 2022) have
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;advanced the field of image synthesis considerably, achieving remarkable results that closely approxi-
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;∗
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;equal contribution
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;arXiv:2306.00637v2 [cs.CV] 29 Sep 2023
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Figure 1: Text-conditional generations using Wurstchen. Note the various art styles and aspect ratios. ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;mate photorealism. However, these foundation models, while impressive in their capabilities, carry
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a significant drawback: they are computationally demanding. For instance, Stable Diffusion (SD)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1.4, one of the most notable models in the field, used 150,000 GPU hours for training (Rombach &amp;amp;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Esser, 2022). While more economical text-to-image models do exist (Ding et al., 2021; 2022; Tao
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;et al., 2023; 2022), the image quality of these models can be considered inferior in terms of lower
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;resolution and overall aesthetic features.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The core dilemma for this discrepancy is that increasing the resolution also increases visual complexity
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;and computational cost, making image synthesis more expensive and data-intensive to train. Encoderbased Latent Diffusion Models (LDMs) partially address this by operating on a compressed latent
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;space instead of directly on the pixel-space (Rombach et al., 2022), but are ultimately limited by how
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;much the encoder-decoder model can compress the image without degradation (Richter et al., 2021a).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Against this backdrop, we propose a novel three-stage architecture named ”Wurstchen”, which ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;drastically reduces the computational demands while maintaining competitive performance. We
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;achieve this by training a diffusion model on a very low dimensional latent space with a high
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compression ratio of 42:1. This very low dimensional latent-space is used to condition the second
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;generative latent model, effectively helping it to navigate a higher dimensional latent space of a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Vector-quantized Generative Adversarial Network (VQGAN), which operates at a compression ratio
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of 4:1. More concretely, the approach uses three distinct stages for image synthesis (see Figure 2):
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;initially, a text-conditional LDM is used to create a low dimensional latent representation of the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;image (Stage C). This latent representation is used to condition another LDM (Stage B), producing
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a latent image in a latent space of higher dimensionality. Finally, the latent image is decoded by a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;VQGAN-decoder to yield the full-resolution output image (Stage A).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Training is performed in reverse order to the inference (Figure 3): The initial training is carried out
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;on Stage A and employs a VQGAN to create a latent space. This compact representation facilitates
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;learning and inference speed (Rombach et al., 2022; Chang et al., 2023; Rampas et al., 2023). The
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;next phase (Stage B) involves a first latent diffusion process (Rombach et al., 2022), conditioned on
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the outputs of a Semantic Compressor (an encoder operating at a very high spatial compression rate)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;and on text embeddings. This diffusion process is tasked to reconstruct the latent space established
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;by the training of Stage A, which is strongly guided by the detailed semantic information provided by
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the Semantic Compressor. Finally, for the construction of Stage C, the strongly compressed latents
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of the Semantic Compressor from Stage B are used to project images into the condensed latent
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;space where a text-conditional LDM (Rombach et al., 2022) is trained. The significant reduction in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;space dimensions in Stage C allows for more efficient training and inference of the diffusion model,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;considerably reducing both the computational resources required and the time taken for the process.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Our proposed Wurstchen model thus introduces a thoughtfully designed approach to address the ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;high computational burden of current state-of-the-art models, providing a significant leap forward
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;in text-to-image synthesis. With this approach we are able to train a 1B parameter Stage C textconditional diffusion model within approximately 24,602 GPU hours, resembling a 8x reduction in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;computation compared to the amount SD 2.1 used for training (200,000 GPU hours), while showing
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;similar fidelity both visually and numerically. Throughout this paper, we provide a comprehensive
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;evaluation of Wurstchen’s efficacy, demonstrating its potential to democratize the deployment &amp;amp; ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;training of high-quality image synthesis models.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Figure 2: Inference architecture for text-conditional image generation.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Our main contributions are the following:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;1.&lt;/span&gt; We propose a novel three-stage architecture for text-to-image synthesis at strong compression
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ratio, consisting of two conditional latent diffusion stages and a latent image decoder.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;2.&lt;/span&gt; We show that by using a text-conditional diffusion model in a strongly compressed latent
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;space we can achieve state-of-the-art model performance at a significantly reduced training
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cost and inference speed.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;3.&lt;/span&gt; We provide comprehensive experimental validation of the model’s efficacy based on automated metrics and human feedback.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;4.&lt;/span&gt; We are publicly releasing the source code and the entire suite of model weights.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2 RELATED WORK
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2.1 CONDITIONAL IMAGE GENERATION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The field of image generation guided by text prompts has undergone significant progression in recent
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;years. Initial approaches predominantly leveraged Generative Adversarial Networks (GANs) (Reed
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;et al., 2016; Zhang et al., 2017). More recently, however, a paradigm shift in the field of image
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;generation towards diffusion models (Sohl-Dickstein et al., 2015; Ho et al., 2020) has occurred. These
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;approaches, in some cases, have not only met but even exceeded the performance of GANs in both
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;conditional and unconditional image generation (Dhariwal &amp;amp; Nichol, 2021). Diffusion models put
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;forth a score-based scheme that gradually eliminates perturbations (e.g., noise) from a target image,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;with the training objective framed as a reweighted variational lower-bound. Next to diffusion models,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;another dominant choice for training text-to-image models is transformers. In their early stages,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;transformer-based models utilized an autoregressive approach, leading to a significant slowdown
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;in inference due to the requirement for each token to be sampled individually. Current strategies,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;however, employ a bidirectional transformer (Ding et al., 2022; Chang et al., 2022; 2023) to address
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the challenges that traditional autoregressive models present. As a result, image generation can be
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;executed using fewer steps, while also benefiting from a global context during the generative phase.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Other recent work has shown that convolution-based approaches for image generation can yield
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;similar results (Rampas et al., 2023).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2.2 COMPRESSED LATENT SPACES
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The majority of approaches in the visual modality of generative models use some way to train at a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;smaller space, followed by upscaling to high resolutions, as training at large pixel resolutions can
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;become exponentially more expensive with the size of images. For text-conditional image generation,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;there are two established categories of approaches: encoder-based and upsampler-based. LDMs
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(Rombach et al., 2022), DALL-E (Ramesh et al., 2021), CogView (Ding et al., 2021; 2022), MUSE
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(Chang et al., 2023) belong to the first category and employ a two-stage training process. Initially,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;an autoencoder (Rumelhart et al., 1985) is trained to provide a lower-dimensional, yet perceptually
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;equivalent, representation of the data. This representation forms the basis for the subsequent training
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of a diffusion or transformer model. Eventually, generated latent representations can be decoded
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;with the decoder branch of the autoencoder to the pixel space. The result is a significant reduction in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;computational complexity for the diffusion/sampling process and efficient image decoding from the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latent space using a single network pass. On the contrary, upsampler-based methods generate images
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;at low resolution in the pixel space and use subsequent models for upscaling the images to higher
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;resolution. UnClip (Ramesh et al., 2022) and Imagen (Saharia et al., 2022) both generate images
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;at 64x64 and upscale using two models to 256 and 1024 pixels. The former model is the largest in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terms of parameter count, while the latter models are smaller due to working at higher resolution and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;only being responsible for upscaling.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2.3 CONDITIONAL GUIDANCE
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The conditional guidance of models in text-based scenarios is typically facilitated through the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;encoding of textual prompts via a pretrained language model. Two major categories of text encoders
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;are employed: contrastive text encoders and uni-modal text encoders. Contrastive Language-Image
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Pretraining (CLIP) (Radford et al., 2021) is a representative of the contrastive multimodal models
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;that strives to align text descriptions and images bearing semantic resemblance within a common
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latent space. A host of image generation methodologies have adopted a frozen CLIP model as their
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;exclusive conditioning method in recent literature. The hierarchical DALL-E 2 by Ramesh et al.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(2022) specifically harnesses CLIP image embeddings as input for their diffusion model, while a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;’prior’ performs the conversion of CLIP text embeddings to image embeddings. SD (Rombach et al.,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2022), on the other hand, makes use of un-pooled CLIP text embeddings to condition its LDM. In
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;contrast, the works of Saharia et al. (2022), Liu et al. (2022a) and Chang et al. (2023) leverage a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;large, uni-modal language model such as T5 (Raffel et al., 2020) or ByT5 (Xue et al., 2022) that can
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;encode textual prompts with notable accuracy, leading to image generations of superior precision in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terms of composition, style, and layout.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3 METHOD
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Our method comprises three stages, all implemented as deep neural networks. For image generation,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;we first generate a latent image at a strong compression ratio using a text-conditional LDM (Stage C).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Subsequently, this representation is transformed to a less-compressed latent space by the means of a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;secondary model which is tasked for this reconstruction (Stage B). Finally, the tokens that comprise
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the latent image in this intermediate resolution are decoded to yield the output image (Stage A).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The training of this architecture is performed in reverse order, starting with Stage A, then following
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;up with Stage B and finally Stage C (see Figure 3). Text conditioning is applied on Stage C using
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;CLIP-H (Ilharco et al., 2021). Details on the training procedure can be found in Appendix E.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3.1 STAGE A AND B
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;It is a known and well-studied technique to reduce the computational burden by compressing data
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;into a smaller representation(Richter et al., 2021a;b; Chang et al., 2022). Our approach follows
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;this paradigm, too, and makes use of Stages A &amp;amp; B to achieve a notably higher compression than
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;usual. Let H × W × C be the dimensions of images. A spatial compression maps images to a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latent representation with a resolution of h × w × z with h = H/f, w = W/f, where f defines the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compression rate. Common approaches for modeling image synthesis use a one-stage compression
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;between f4 and f16 (Esser et al., 2021; Chang et al., 2023; Rombach et al., 2022), with higher factors
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;usually resulting in worse reconstructions. Our Stage A consists of a f4 VQGAN (Esser et al., 2021)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;with parameters Θ and initially encodes images X ∈ R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3×1024×1024 into 256 × 256 discrete tokens
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;from a learned codebook of size 8,192.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Xq = fΘ(X)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The network is trained as described by Esser et al. and tries to reconstruct the image based on the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;quantized latents, so that:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Θ (fΘ (X)) = f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Θ (Xq) ≈ X
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;where f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Θ resembles the decoder part of the VQGAN.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Afterward, the quantization is dropped from Stage A, and Stage B is trained in the unquantized
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latent space of the Stage A-encoder as a conditioned LDM. In stage B, we utilize a Semantic
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Compressor, i.e., an encoder-type network that is tasked to create latent representations at a strong
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;spatial compression rate that can be used to create a latent representation to guide the diffusion
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;process. The unquantized image embeddings are noised following an LDM training procedure. The
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;4
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Figure 3: Training objectives of our model. Initially, a VQGAN is trained. Secondly, Stage B is trained
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;as a diffusion model inside Stage A’s latent space. Stage B is conditioned on text-embeddings and the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;output of the Semantic Compressor, which produces strongly downsampled latent representations
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of the same image. Finally, Stage C is trained on the latents of the Semantic Compressor as a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;text-conditional LDM, effectively operating on a compression ratio of 42 : 1.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;noised representation X˜
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;t, together with the visual embeddings from the Semantic Compressor, Csc,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;text conditioning Ctext and the timestep t are given to the model.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;The highly compressed visual embeddings extracted by the Semantic Compressor will act as an
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;interface for Stage C, which will be trained to generate them. The embeddings will have a shape
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1280×24×24 obtained by encoding images with shape X ∈ R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3×786×786. We use simple bicubic
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;interpolation for the resizing of the images from 1024×1024 to 786×786, which is a sufficiently high
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;resolution to fully utilize the parameters of the Semantic Compressor (Richter et al., 2023; Richter &amp;amp;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Pal, 2022), while also reducing the latent representation size. Moreover, we further compress the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latents with a 1 × 1 convolution that normalizes and projects the embeddings to Csc ∈ R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;16×24×24
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;This compressed representation of the images is given to the Stage B decoder as conditioning to
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;guide the decoding process.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;X¯
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0 = fϑ(X˜
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;t, Csc, Ctext, t)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;By conditioning Stage B on low-dimensional latent representations, we can effectively decode images
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;from a R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;16×24×24 latent space to a resolution of X ∈ R
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3×1024×1024, resulting in a total spatial
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compression of 42:1.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We initialized the Semantic Compressor with weights pre-trained on ImageNet, which, however, does
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;not capture the broad distribution of images present in large text-image datasets and is not well-suited
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;for semantic image projection, since it was trained with an objective to discriminate the ImageNet
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;categories. Hence we updated the weights of the Semantic Compressor during training, establishing a
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;latent space with high-precision semantic information. We use Cross-Attention (Vaswani et al., 2017)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;for conditioning and project Csc (flattened) to the same dimension in each block of the model and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;concatenate them. Furthermore, during training Stage B, we intermittently add noise to the Semantic
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Compressor’s embeddings, to teach the model to understand non-perfect embeddings, which is likely
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;to be the case when generating these embeddings with Stage C. Lastly, we also randomly drop Csc to
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;be able to sample with classifier-free-guidance (Ho &amp;amp; Salimans, 2022) during sampling.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;5
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3.2 STAGE C
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;After Stage A and Stage B were trained, training of the text-conditional last stage started. In our
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;implementation, Stage C consists of 16 ConvNeXt-block (Liu et al., 2022b) without downsampling,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;text and time step conditionings are applied after each block via cross-attention. We follow a standard
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diffusion process, applied in the latent space of the finetuned Semantic Compressor. Images are
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;encoded into their latent representation Xsc = Csc, representing the target. The latents are noised by
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;using the following forward diffusion formula:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Xsc,t =
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;√
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;α¯t · Xsc +
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;√
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 − α¯t · ϵ
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;where ϵ represents noise from a zero mean unit variance normal distribution. We use a cosine schedule
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(Nichol &amp;amp; Dhariwal, 2021) to generate α¯t and use continuous timesteps. The diffusion model takes
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;in the noised embeddings Xsc,t, the text conditioning Ctext and the timestep t. The model returns
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the prediction for the noise in the following form:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ϵ¯ =
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Xsc,t − A
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;| 1 − B | +1e−5
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;with
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;A, B = fθ(Xsc,t, Ctext, t)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We decided to formulate the objective as such, since it made the training more stable. We hypothesize
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;this occurs because the model parameters are initialized to predict 0 at the beginning, enlarging the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;difference to timesteps with a lot of noise. By reformulating to the A &amp;amp; B objective, the model
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;initially returns the input, making the loss small for very noised inputs. We use the standard meansquared-error loss between the predicted noise and the ground truth noise. Additionally, we employ
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the p2 loss weighting (Choi et al., 2022):
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;p2(t)· || ϵ − ϵ¯ ||2
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;where p2(t) is defined as 1−α¯t
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1+ ¯αt
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;, making higher noise levels contribute more to the loss. Text
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;conditioning Ctext are dropped randomly for 5% of the time and replaced with a null-label in order
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;to use classifier-free-guidance (Ho &amp;amp; Salimans, 2022)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3.3 IMAGE GENERATION (SAMPLING)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;A depiction of the sampling pipeline can be seen in Figure 2. Sampling starts at Stage C, which is
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;primarily responsible for image-synthesis (see Appendix D), from initial random noise Xsc,τC =
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;N (0, I). We use the DDPM (Ho et al., 2020) algorithm to sample the Semantic Compressor latents
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;conditioned on text-embeddings. To do so, we run the following operation for τC steps:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Xˆ
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sc,t−1 =
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;√
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;αt
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;· (Xˆ
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sc,t −
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 − αt √
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 − α¯t
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ϵ¯) + r
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(1 − αt)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 − α¯t−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1 − α¯t
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ϵ
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We denote the outcome as X¯
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sc which is of shape 16 × 24 × 24. This output is flattened to a shape
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of 576 × 16 and given as conditioning, along with the same text embeddings used to sample X¯
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sc,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;to Stage B. This stage operates at 4 × 256 × 256 unquantized VQGAN latent space. We initialize
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Xq,τB to random tokens drawn from the VQGAN codebook. We sample X˜ for τB steps using the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;standard LDM scheme.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;X˜
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;t−1 = fϑ(X˜
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;t, Csc, Ctext, t)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Finally X˜ is projected back to the pixel space using the decoder f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Θ of the VQGAN (Stage A):
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;X¯ = f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;−1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Θ (X˜ )
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;6
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;3.4 MODEL DECISIONS
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Theoretically, any feature extractor could be used as backbone for the Semantic Compressor. However,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;we hypothesize that it is beneficial to use a backbone that already has a good feature representation of
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a wide variety of images. Furthermore, having a small Semantic Compressor makes training of Stage
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;B &amp;amp; C faster. Finally, the feature dimension is vital. If it is excessively small, it may fail to capture
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sufficient image details or will underutilize parameters (Richter &amp;amp; Pal, 2022); conversely, if it is overly
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;large, it may unnecessarily increase computational requirements and extend training duration (Richter
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;et al., 2021a). For this reason, we decided to use an ImageNet1k pre-trained EfficientV2 (S) as the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;backbone for our Semantic Compressor, as it combines high compression with well generalizing
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;feature representations and computational efficiency.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Furthermore, we deviate in Stage C from the U-Net standard architecture. As the image is already
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compressed by a factor of 42, and we find further compression harmful to the model quality. Instead,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the model is a simple sequence of 16 ConvNeXt blocks (Liu et al., 2022b) without downsampling.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Time and text conditioning is applied after each block.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;4 EXPERIMENTS AND EVALUATION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;To demonstrate Wurstchen’s capabilities on text-to-image generation, we trained an 18M parameter ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Stage A, a 1B parameter Stage B and a 1B parameter Stage C. We employed an EfficientNet2-Small
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;as Semantic Compressor (Tan &amp;amp; Le, 2020) during training. Stage B and C are conditioned on
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;un-pooled CLIP-H (Ilharco et al., 2021) text-embeddings. The setup is designed to produce images
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of variable aspect ratio with up to 1538 pixels per side. All stages were trained on subsets of the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;improved-aesthetic LAION-5B (Schuhmann et al., 2022) dataset.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;All the experiments use the standard DDPM (Ho et al., 2020) algorithm to sample latents in Stage B
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;and C. Both stages also make use of classifier-free-guidance (Ho &amp;amp; Salimans, 2022) with guidance
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;scale w. We fix the hyperparameters for Stage B sampling to τB = 12 and w = 4, Stage C uses
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;τC = 60 for sampling. Images are generated using a 1024 × 1024 resolution.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Baselines To better assess the efficacy of our architecture, we additionally train a U-Net-based 1B
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;parameter LDM on SD 2.1 first stage and text-conditioning model. We refer to this model as Baseline
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;LDM, it is trained for ≈ 25,000 GPU-hours (same as Stage C) using an 512 × 512 input resolution.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Additionally, we evaluate our model against various state-of-the-art models that were publicly
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;available at the time of writing (see Tables 1 and Table 2). All these models were used in their
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;respective default configuration for text-to-image synthesis. Whenever possible, the evaluation
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;metrics published by the original authors were used.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Evaluation Metrics We used the Frechet Inception Distance (FID) (Heusel et al., 2018) and ´
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Inception Score (IS) to evaluate all our models on COCO-30K, similar to (Tao et al., 2023; Ding
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;et al., 2021; 2022). For evaluating the FID score, all images were downsampled to 256 × 256 pixels
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;to allow for a fair comparison between other models in the literature. However, both metrics suffer
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;from inconsistencies and are known to be not necessarily well correlated with the aesthetic quality
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;perceived by humans (Podell et al. (2023); Ding et al. (2021; 2022), see also Appendix B). For this
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;reason, we chose PickScore (Kirstain et al., 2023) as our primary automated metric. PickScore is
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;designed to imitate human preferences, when selecting from a set of images given the same prompt.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We applied PickScore to compare Wurstchen to various other models on various datasets. We provide ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the percentage of images, where PickScore preferred the image of Wurstchen over the image of the ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;other model. To also evaluate the environmental impact of our model we estimated the carbon emitted
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;during training based on the work of (Lacoste et al., 2019).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Finally, we also conducted a study with human participants, where the participants chose between
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;two images from two different models given the prompt.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Datasets To assess the zero-shot text-to-image capabilities of our model, we use three distinct sets
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of captions alongside their corresponding images. The COCO-validation is the de-facto standard
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;dataset to evaluate the zero-shot performance for text-to-image models. For MS COCO we generate
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;30,000 images based on prompts randomly chosen from the validation set. We refer to this set of
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;7
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Figure 4: Inference time for 1024 × 1024 images on an A100-GPUs. Left plot shows performance
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;without specific optimization, right plot shows performance using torch.compile().
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Table 1: Evaluation of Image Quality on MS-COCO and Localized Narratives (Pont-Tuset et al.,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2020) using the PickScore (Kirstain et al., 2023) to binary select images generated from the same
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;captions by two different models. Wurstchen outperforms all models of equal and smaller size, ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;despite Stable Diffusion models using a significantly higher compute budget.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;PickScore(COCO-30k) ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Model Baseline LDM (ours) DF-GAN GALIP SD 1.4 SD 2.1 SD XL
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(train cost) (≈25,000 gpu-h) - - (150.000 gpu-h) (200.000 gpu-h) -
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;96.5% 99.8% 98.1% 78.1% 64.4% 39.4% (24,602 gpu-h)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;PickScore (Localized Narratives-COCO-5K) ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Model Baseline LDM (ours) DF-GAN GALIP SD 1.4 SD 2.1 SD XL
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(train cost) (≈25,000 gpu-h) - - (150.000 gpu-h) (200.000 gpu-h) -
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;96.6% 98.0% 95.5% 79.9% 70.0% 39.1% (24,602 gpu-h)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;PickScore (Parti-prompts) ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Model Baseline LDM (ours) DF-GAN GALIP SD 1.4 SD 2.1 SD XL
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(train cost) (≈25,000 gpu-h) - - (150.000 gpu-h) (200.000 gpu-h) -
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;98.6% 99.6% 97.9% 82.1% 74.6% 39.0% (24,602 gpu-h)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;images as COCO30K. Since the prompts of MS COCO are quite short and frequently lack detail, we
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;also generate 5,000 images from the Localized Narrative MS COCO subset, we refer to his dataset
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;as Localized Narratives-COCO-5K. Finally, we also use Parti-prompts (Yu et al., 2022b), a highly
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diverse set of 1633 captions, which closely reflects the usage scenario we intend for our model.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;4.1 AUTOMATED TEXT-TO-IMAGE EVALUATION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We evaluate the quality of the generated images using automated metrics in comparison to other,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;publicly available models (see Appendix A for random examples). The PickScores in Table 1 paint
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;a consistent picture over the three datasets the models were evaluated on. Wurstchen is preferred ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;very significantly over smaller models like DF-GAN and GALIP, which is expected. The LDM is
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;outperformed dramatically in all cases, highlighting that the architecture had a significant impact on
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the model’s computational training efficiency. Wurstchen is also preferred in all three scenarios ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;over SD 1.4 and 2.1, despite their significantly higher compute-budget at a similar modelcapacity. While SD XL is still superior in image quality, our inference speed is significantly faster
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(see Figure 4). This comparison is not entirely fair, as it’s a higher capacity model and its data and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compute budget is unknown. For this reason, we are omitting SD XL from the following experiments.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;While we achieve a higher Inception Score (IC) on COCO30K compared to all other models in our
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;broader comparison in Table 2 also shows a relatively high FID on the same dataset. While still
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;outperforming larger models like CogView2 (Ding et al., 2022) and our Baseline LDM, the FID
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;is substantially lower compared to other state-of-the-art models. We attribute this discrepancy to
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;high-frequency features in the images. During visual inspections we find that images generates by
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen tend smoother than in other text-to-image models. This difference is most noticeable in ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;real-world images like COCO, on which we compute the FID-metric.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;8
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Würstchen Stable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Diffusion 2.1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Both Equal
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;20
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;40
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;60
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;80
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;100
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;% Preference
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;41.3% 40.6%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;18.1%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;49.5%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;32.8%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;17.7%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Images from MS COCO Captions
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Images from Parti-prompts
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(a) Overall Preference
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Würstchen Stable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Diffusion 2.1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Both Equal
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;20
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;40
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;60
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;80
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;100
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;% Preferred by Participants
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;44.44%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;27.78% 27.78%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;72.22%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;5.56%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;22.22%
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Images from MS COCO Captions
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Images from Parti-prompts
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(b) Individual Preference
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Individuals
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;50
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;100
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;150
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;200
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;250
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;300
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;350
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;gh&#34;&gt;# Comparisons (Parti-prompts)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;gh&#34;&gt;&lt;/span&gt;50th Percentile,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;preference statistic
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cutoff
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(c) Histogram (MS COCO)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Individuals
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;50
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;100
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;150
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;200
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;250
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;300
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;350
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;gh&#34;&gt;# Comparisons (MS COCO)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;gh&#34;&gt;&lt;/span&gt;50th Percentile,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;preference statistic
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cutoff
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;(d) Histogram (Parti)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Figure 5: Overall human preferences (left) and by users (middle). The preference by users considered
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;only users with a large number of comparisons (right).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;4.2 HUMAN PREFERENCE EVALUATION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;While most metrics evaluated in the previous section are correlated with human preference (Kirstain
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;et al., 2023; Heusel et al., 2018; Salimans et al., 2016), we follow the example of other works
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;and also conducted two brief studies on human preference. To simplify the evaluation, we solely
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;compared Wurstchen against ¨ SD 2.1, its closest capacity and performance competitor, and evaluated
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the human preference between these two models following the setup of Kirstain et al. (2023). In total,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;we conducted two studies using the generated images from Parti-prompts and COCO30K images.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Participants were presented randomly chosen pairs of images in randomized order. For each pair the
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;participants selected a preference for one or neither of the images (see Appendix C for details). In
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;total, 3343 (Parti-prompts) and 2262 (COCO Captions) comparisons by 90 participants were made.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;We evaluate results in two distinct ways. First, by counting the total number of preferences independent of user-identity. In Figure 5 (a) we can see that images generated by our model on Parti-prompts
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;were clearly preferred. This is important to us, since Parti-prompt closely reflects the intended use
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;case of the model. However, for MS-COCO this statistic is inconclusive. We hypothesize that this is
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;due to the vague prompts generating a more diverse set of images, making the preference more subject
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;to personal taste, biasing this statistics towards users that completed more comparisons (Figure 5 (c,
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;d)). For this reason, we conducted a second analysis, where we evaluated the personally preferred
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;model for each individual. In an effort to only include participants that completed a representative
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;number of comparisons, we only include users from the upper 50th percentile and above. By doing
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;so, we include only individuals with at least 30 (MS-COCO) and 51 (Parti-prompts) comparisons in
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the statistic. Under these circumstances, we observed a light preference for MS-COCO in favor of
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen and a strong preference for our model on Parti-prompts (Figure 16 (b)). In summary, the ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;human preference experiments confirm the observation made in the PickScore experiments. While
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;the real-world results were in-part less decisive, the image generation quality of Wurstchen was ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;overall preferred by the participants of both studies over SD 2.1.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Table 2: Comparison to other architectures. ∗
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;computed from own evaluation. † based on official
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;model cards (Rombach &amp;amp; Esser, 2022; Rombach et al., 2023).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Model Params Sampling
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Steps
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;FID ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;ni&#34;&gt;@2562&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;IS ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;ni&#34;&gt;@2992&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Open
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Source
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;GPU Hours
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;@ A100 ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Train ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Samples
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Est. Carbon Em.
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[kg CO2 eq.]
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;GLIDE (Nichol et al., 2021) 3.5B 250 12.24 – – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Make-A-Scene (Gafni et al., 2022) 4B 1024 11.84 – – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Parti (Yu et al., 2022a) 20B 1024 7.23 – – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;CogView (Ramesh et al., 2021) 4B 1024 27.1 22.4 ✓ – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;CogView2 (Ding et al., 2022) 6B - 24.0 25.2 - – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;DF-GAN (Tao et al., 2022) 19M - 19.3 18.6 ✓ – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;GALIP (Tao et al., 2023) 240M - 12.5 26.3* ✓ – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;DALL-E (Ramesh et al., 2021) 12B 256 17.89 17.9 – – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;LDM (Rombach et al., 2022) 1.45B 250 12.63 30.3 ✓ – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Baseline LDM (ours) 0.99B 60 43.5* 20.1* - ≈25,000 ≈2,300
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Wurstchen (ours) ¨ 0.99B 60 23.6* 40.9* ✓ 24,602 1.42B 2,276
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;SD 1.4 (Rombach et al., 2022) 0.8B 50 16.2* 40.6* ✓ 150,000 † 4.8B † 11,250 †
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;SD 2.1 (Rombach et al., 2022) 0.8B 50 15.1* 40.1* ✓ 200,000 † 3.9B † 15,000 †
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;SD XL (Podell et al., 2023) 2.6B 50 &amp;gt; 18 – ✓ – – –
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;9
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;4.3 EFFICIENCY
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Table 2 shows the computational costs for training Wurstchen compared to the original ¨ SD 1.4 and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;2.1. Based on the evaluations in Section 4.1, it can be seen that the proposed setup of decoupling
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;high-resolution image projection from the actual text-conditional generation can be leveraged even
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;more as done in the past (Esser et al., 2021; Saharia et al., 2022; Ramesh et al., 2022), while still
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;staying on-par or outperforming in terms of quality, fidelity and alignment. Stage C, being the most
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;expensive stage to train from scratch, required only 24,602 GPU hours, compared to 200,000 GPU
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;hours (Rombach et al., 2023) for SD 2.1, making it a 8x improvement. Additionally, SD 1.4 and 2.1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;processed significantly more image samples. The latter metric is based on the total number of steps
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;of all trainings and finetunings and multiplied with the respective batch sizes. Even when accounting
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;for 11,000 GPU hours and 318M train samples used for training Stage B, Wurstchen is significantly ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;more efficient to train than the SD models. Moreover, although needing to sample with both Stage A
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&amp;amp; B to generate the VQGAN latents ¯xq, the total inference is still significantly faster than SD 2.1 and
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;XL (see Figure 4).
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;5 CONCLUSION
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;In this work, we presented our text-conditional image generation model Wurstchen, which employs a ¨
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;three stage process of decoupling text-conditional image generation from high-resolution spaces. The
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;proposed process enables to train large-scale models efficiently, substantially reducing computational
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;requirements, while at the same time providing high-fidelity images. Our trained model achieved
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;comparable performance to models trained using significantly more computational resources, illustrating the viability of this approach and suggesting potential efficient scalability to even larger model
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;parameters. We hope our work can serve as a starting point for further research into a more sustainable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;and computationally more efficient domain of generative AI and open up more possibilities into
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;training, finetuning &amp;amp; deploying large-scale models on consumer hardware. We will provide all of
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;our source code, including training-, and inference scripts and trained models on GitHub.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;论文笔记：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

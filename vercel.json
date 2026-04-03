@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    { "source": "/paper/self_rewarding_language_models", "destination": "/posts/self-rewarding-language-models", "permanent": true },
+    { "source": "/paper/self_rewarding_language_models/", "destination": "/posts/self-rewarding-language-models/", "permanent": true },
+    { "source": "/transformers/Multi-gpu-training-dp-vs-ddp", "destination": "/posts/multi-gpu-training-dp-vs-ddp", "permanent": true },
+    { "source": "/transformers/Multi-gpu-training-dp-vs-ddp/", "destination": "/posts/multi-gpu-training-dp-vs-ddp/", "permanent": true },
+    { "source": "/transformers/multi-gpu-training-strategy", "destination": "/posts/multi-gpu-training-strategy", "permanent": true },
+    { "source": "/transformers/multi-gpu-training-strategy/", "destination": "/posts/multi-gpu-training-strategy/", "permanent": true },
+    { "source": "/python/fastapi_encode_objectid", "destination": "/posts/fastapi-encode-objectid", "permanent": true },
+    { "source": "/python/fastapi_encode_objectid/", "destination": "/posts/fastapi-encode-objectid/", "permanent": true },
+    { "source": "/en/python/fastapi_encode_objectid", "destination": "/en/posts/fastapi-encode-objectid", "permanent": true },
+    { "source": "/en/python/fastapi_encode_objectid/", "destination": "/en/posts/fastapi-encode-objectid/", "permanent": true }
+  ]
+}
