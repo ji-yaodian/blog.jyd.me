@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/jiyaodian/github/blog.jyd.me -type f -name *.toml -o -name *.yaml -o -name *.yml -o -name config.json)",
+      "Bash(git:*)",
+      "Bash(cat /Users/jiyaodian/github/blog.jyd.me/.github/workflows/*.yaml)",
+      "Bash(fi)",
+      "Bash(wc -l /Users/jiyaodian/github/blog.jyd.me/content/*/posts/*.md)",
+      "Bash(find /Users/jiyaodian/github/blog.jyd.me/content -type f -name \"*.md\" -exec grep -l \"^title:\" {})",
+      "mcp__context7__resolve-library-id",
+      "Bash(find /Users/jiyaodian/github/blog.jyd.me/themes/PaperMod/layouts -type f -name comments.html -o -name giscus*)",
+      "mcp__context7__query-docs",
+      "WebSearch",
+      "mcp__plugin_context7_context7__query-docs",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(npm i:*)",
+      "Bash(corepack enable:*)",
+      "Bash(corepack prepare:*)",
+      "Bash(npm create:*)",
+      "Bash(rm -rf /tmp/astro-paper-i18n)",
+      "Bash(npx --yes degit yousef8/astro-paper-i18n /tmp/astro-paper-i18n)",
+      "Bash(cp /tmp/astro-paper-i18n/astro.config.ts .)",
+      "Bash(cp /tmp/astro-paper-i18n/package.json .)",
+      "Bash(cp /tmp/astro-paper-i18n/tsconfig.json .)",
+      "Bash(cp /tmp/astro-paper-i18n/.gitignore .)",
+      "Bash(cp /tmp/astro-paper-i18n/eslint.config.js .)",
+      "Bash(npm install:*)",
+      "Bash(npx astro:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/en/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/posts/self-rewarding-language-models/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/about/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/archives/)",
+      "Bash(pnpm dev:*)",
+      "Bash(gh run:*)",
+      "Bash(ls /Users/jiyaodian/github/blog.jyd.me/README*)"
+    ]
+  }
+}
